@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q1 2026 NEC — Attendance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#E50914; --black:#080808; --dark:#0e0e0e; --card:#141414; --card2:#1b1b1b;
+  --border:#232323; --muted:#5a5a5a; --dim:#2e2e2e; --text:#d8d8d8;
+  --d1:#1fbe5e;   /* Day 1 green */
+  --d2:#0fb5c8;   /* Day 2 teal */
+  --await:#f0a500;
+  --no:#c0392b;
+  --blue:#4b8ff5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.55;}
+
+/* ─── HEADER ─────────────────────────────── */
+.hdr{background:var(--dark);border-bottom:3px solid var(--red);padding:36px 52px 26px;}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;margin-bottom:20px;}
+.eyebrow{font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--red);font-weight:600;margin-bottom:8px;}
+.htitle{font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:.9;color:#fff;letter-spacing:1.5px;}
+.htitle em{color:var(--red);font-style:normal;}
+.hsub{color:var(--muted);font-size:11px;margin-top:9px;}
+
+/* ─── RSVP TRUTH TABLE ───────────────────── */
+.gs-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+.gs-badge{background:rgba(75,143,245,.12);border:1px solid rgba(75,143,245,.2);border-radius:3px;padding:2px 7px;font-size:9px;color:#7aabff;letter-spacing:1px;}
+.rsvp-tbl{border-collapse:collapse;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.rsvp-tbl th{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:9px 28px 9px 18px;background:var(--card2);border-bottom:1px solid var(--border);text-align:left;}
+.rsvp-tbl th.d1h{color:var(--d1);text-align:center;border-left:1px solid var(--border);}
+.rsvp-tbl th.d2h{color:var(--d2);text-align:center;border-left:1px solid var(--border);}
+.rsvp-tbl td{padding:10px 28px 10px 18px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.rsvp-tbl td.dc{text-align:center;border-left:1px solid var(--border);}
+.rsvp-tbl tr:last-child td{border-bottom:none;background:rgba(75,143,245,.04);}
+.rv{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;}
+.rv.g{color:var(--d1);} .rv.t{color:var(--d2);} .rv.a{color:var(--await);}
+.rv.r{color:var(--no);} .rv.b{color:var(--blue);} .rv.dim{color:var(--dim);}
+.rlbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;}
+
+/* ─── PILLS ──────────────────────────────── */
+.pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:4px 11px;font-size:10px;display:flex;align-items:center;gap:5px;}
+.pill.d1b{border-color:rgba(31,190,94,.2);background:rgba(31,190,94,.05);}
+.pill.d2b{border-color:rgba(15,181,200,.2);background:rgba(15,181,200,.05);}
+.pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.pnum{font-family:'Bebas Neue',sans-serif;font-size:15px;color:#fff;line-height:1;}
+.plbl{color:var(--muted);}
+
+/* ─── NOTE STRIP ─────────────────────────── */
+.notestrip{background:rgba(75,143,245,.05);border-bottom:1px solid rgba(75,143,245,.12);padding:8px 52px;font-size:11px;color:#7aabff;display:flex;gap:22px;flex-wrap:wrap;}
+.notestrip b{color:#9ec2ff;}
+
+/* ─── NAV ────────────────────────────────── */
+.nav{background:var(--dark);border-bottom:1px solid var(--border);padding:0 52px;display:flex;position:sticky;top:0;z-index:100;overflow-x:auto;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:12px 17px;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s;}
+.nb:hover{color:var(--text);}
+.nb.on{color:var(--red);border-bottom-color:var(--red);}
+
+/* ─── SECTIONS ───────────────────────────── */
+.sec{display:none;padding:38px 52px 60px;}
+.sec.on{display:block;animation:fi .25s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.stitle{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#fff;letter-spacing:1.5px;margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ─── DAY BADGES ─────────────────────────── */
+.day-badge{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:10px;}
+.day-badge.d1{background:rgba(31,190,94,.12);color:var(--d1);border:1px solid rgba(31,190,94,.25);}
+.day-badge.d2{background:rgba(15,181,200,.12);color:var(--d2);border:1px solid rgba(15,181,200,.25);}
+
+/* ─── GRIDS ──────────────────────────────── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:15px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:15px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:15px;}
+.g6{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:15px;}
+@media(max-width:900px){.g2,.g3,.g4,.g5,.g6{grid-template-columns:1fr 1fr;}}
+.mb{margin-bottom:15px;}
+
+/* ─── CARD ───────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.card.d1-accent{border-top:2px solid var(--d1);}
+.card.d2-accent{border-top:2px solid var(--d2);}
+.ch{padding:11px 17px;background:var(--card2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.ct{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;letter-spacing:.5px;}
+.csub{font-size:9px;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:.3px;}
+.cv{font-family:'Bebas Neue',sans-serif;font-size:22px;}
+.cb{padding:15px 17px;}
+
+/* ─── STAT BLOCKS ────────────────────────── */
+.sblock{padding:18px 17px;}
+.snum{font-family:'Bebas Neue',sans-serif;font-size:50px;line-height:1;}
+.slbl{font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1px;}
+.snote{font-size:10px;margin-top:5px;}
+
+/* ─── MINI STAT ──────────────────────────── */
+.mstat{padding:14px 15px;}
+.mnum{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;}
+.mlbl{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.8px;}
+.mnote{font-size:10px;margin-top:4px;color:var(--muted);}
+
+/* ─── STACKED BAR ────────────────────────── */
+.stk{display:flex;height:11px;border-radius:4px;overflow:hidden;gap:1px;}
+.stks{height:100%;}
+.stkleg{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;}
+.stkli{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.stkd{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ─── BARS ───────────────────────────────── */
+.br{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.br:last-child{margin-bottom:0;}
+.bl{font-size:11px;color:var(--muted);min-width:145px;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bl.w120{min-width:120px;max-width:120px;}
+.bt{flex:1;height:6px;background:var(--dim);border-radius:3px;overflow:hidden;}
+.bf{height:100%;border-radius:3px;width:0;transition:width .9s cubic-bezier(.25,.46,.45,.94);}
+.bv{font-size:12px;font-weight:600;color:var(--text);min-width:30px;text-align:right;}
+.bp{font-size:10px;color:var(--muted);min-width:28px;text-align:right;}
+.dlbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:15px 0 8px;}
+.dlbl:first-child{margin-top:0;}
+
+/* ─── TABLE ──────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.tbl th{background:var(--card2);color:var(--muted);font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tbl th.r{text-align:right;}
+.tbl th.d1h{color:var(--d1);text-align:right;}
+.tbl th.d2h{color:var(--d2);text-align:right;}
+.tbl td{padding:9px 12px;border-bottom:1px solid #1a1a1a;color:var(--text);vertical-align:middle;}
+.tbl td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.01);}
+.tbl tr.tot td{background:var(--card2);font-weight:600;}
+
+/* ─── TAGS ───────────────────────────────── */
+.tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 6px;border-radius:2px;text-transform:uppercase;}
+.tg{background:rgba(31,190,94,.15);color:var(--d1);}
+.tt{background:rgba(15,181,200,.15);color:var(--d2);}
+.ta{background:rgba(240,165,0,.15);color:var(--await);}
+.tr{background:rgba(192,57,43,.15);color:var(--no);}
+.tb{background:rgba(75,143,245,.15);color:var(--blue);}
+
+/* ─── CALLOUT ────────────────────────────── */
+.co{border-radius:8px;padding:14px 17px;margin-bottom:13px;border:1px solid;}
+.co:last-child{margin-bottom:0;}
+.co.r{background:rgba(192,57,43,.06);border-color:rgba(192,57,43,.2);}
+.co.g{background:rgba(31,190,94,.06);border-color:rgba(31,190,94,.2);}
+.co.a{background:rgba(240,165,0,.06);border-color:rgba(240,165,0,.2);}
+.co.b{background:rgba(75,143,245,.06);border-color:rgba(75,143,245,.2);}
+.co.t{background:rgba(15,181,200,.06);border-color:rgba(15,181,200,.2);}
+.cotag{font-size:8px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:4px;}
+.co.r .cotag{color:var(--no);} .co.g .cotag{color:var(--d1);}
+.co.a .cotag{color:var(--await);} .co.b .cotag{color:var(--blue);} .co.t .cotag{color:var(--d2);}
+.cotitle{font-weight:600;color:#fff;font-size:13px;margin-bottom:4px;}
+.cotext{font-size:11px;color:var(--muted);line-height:1.75;}
+
+/* ─── LOC GRID ───────────────────────────── */
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:7px;padding:13px 17px;}
+.lgi{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;}
+.lgnum{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:#fff;}
+.lgname{font-size:10px;color:var(--muted);margin-top:1px;}
+.lgbar{height:2px;border-radius:1px;margin-top:5px;}
+
+/* ─── INLINE PCT ─────────────────────────── */
+.ipct{display:inline-block;width:46px;height:4px;background:var(--border);border-radius:2px;vertical-align:middle;margin-left:5px;overflow:hidden;}
+.ifill{height:100%;border-radius:2px;}
+
+/* ─── DIVIDER ────────────────────────────── */
+.day-divider{display:flex;align-items:center;gap:12px;margin:22px 0 16px;}
+.day-divider span{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;white-space:nowrap;}
+.day-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.day-divider.d1 span{color:var(--d1);}
+.day-divider.d2 span{color:var(--d2);}
+
+/* ─── FOOTER ─────────────────────────────── */
+.footer{border-top:1px solid var(--border);padding:14px 52px;display:flex;justify-content:space-between;color:var(--dim);font-size:10px;}
+</style>
+</head>
+<body>
+
+<!-- ════ HEADER ════════════════════════════════════════════ -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="eyebrow">Netflix · UCAN · Q1 2026</div>
+      <div class="htitle">NEC<br><em>Attendance</em></div>
+      <div class="hsub">New Employee College · Feb 4–5, 2026 · Names excluded · Registration system + manual RSVP tracker</div>
+    </div>
+
+    <div>
+      <div class="gs-label">RSVP Actuals <span class="gs-badge">Google Sheet</span></div>
+      <table class="rsvp-tbl">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th class="d1h">Day 1</th>
+            <th class="d2h">Day 2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="rlbl">Yes</div></td>
+            <td class="dc"><div class="rv g">474</div></td>
+            <td class="dc"><div class="rv t">81</div></td>
+          </tr>
+          <tr>
+            <td><div class="rlbl">Awaiting</div></td>
+            <td class="dc"><div class="rv a">73</div></td>
+            <td class="dc"><div class="rv a">30</div></td>
+          </tr>
+          <tr>
+            <td><div class="rlbl">No</div></td>
+            <td class="dc"><div class="rv dim">—</div></td>
+            <td class="dc"><div class="rv r">28</div></td>
+          </tr>
+          <tr>
+            <td><div class="rlbl" style="color:#7aabff">Total Possible Max</div></td>
+            <td class="dc"><div class="rv b">547</div></td>
+            <td class="dc"><div class="rv b">111</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pills">
+    <div class="pill d1b"><div class="pdot" style="background:var(--d1)"></div><span class="pnum">474</span><span class="plbl">Day 1 Attended</span></div>
+    <div class="pill d1b"><div class="pdot" style="background:var(--d1)"></div><span class="pnum">0</span><span class="plbl">D1 No-Shows</span></div>
+    <div class="pill d2b"><div class="pdot" style="background:var(--d2)"></div><span class="pnum">75</span><span class="plbl">Day 2 Attended</span></div>
+    <div class="pill d2b"><div class="pdot" style="background:var(--d2)"></div><span class="pnum">6</span><span class="plbl">D2 No-Shows</span></div>
+    <div class="pill"><div class="pdot" style="background:var(--await)"></div><span class="pnum">103</span><span class="plbl">Total Awaiting</span></div>
+    <div class="pill"><div class="pdot" style="background:var(--no)"></div><span class="pnum">55</span><span class="plbl">Deferred Q2</span></div>
+    <div class="pill"><div class="pdot" style="background:#333"></div><span class="pnum">721</span><span class="plbl">Total Invited</span></div>
+  </div>
+</div>
+
+<div class="notestrip">
+  <span><b>RSVP Yes/Awaiting/No</b> = Google Sheet (source of truth). Day 1 Nos removed from tracker; Day 2 Nos tracked.</span>
+  <span><b>Attended counts</b> = registration system (474 D1 / 75 D2).</span>
+  <span><b>Total Possible Max</b> = Yes + Awaiting only.</span>
+</div>
+
+<!-- ════ NAV ════════════════════════════════════════════════ -->
+<nav class="nav">
+  <button class="nb on" onclick="go('overview',this)">Overview</button>
+  <button class="nb" onclick="go('function',this)">By Function</button>
+  <button class="nb" onclick="go('level',this)">By Level</button>
+  <button class="nb" onclick="go('location',this)">By Location</button>
+  <button class="nb" onclick="go('day2',this)">Day 2 Leaders</button>
+  <button class="nb" onclick="go('nonatt',this)">Non-Attendance</button>
+  <button class="nb" onclick="go('q2',this)">Q2 Pipeline</button>
+</nav>
+
+
+<!-- ════════════════════════════════════════════════════════
+     OVERVIEW
+════════════════════════════════════════════════════════ -->
+<section id="overview" class="sec on">
+  <div class="stitle">Program Overview</div>
+
+  <!-- ── OVERALL INVITATION BREAKDOWN ── -->
+  <div class="day-divider" style="margin-top:0"><span style="color:#fff;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">Invitation Breakdown — All 721 Unique Invitees</span></div>
+
+  <!-- Invite group cards -->
+  <div class="g3" style="margin-bottom:14px">
+    <div class="card" style="border-top:2px solid var(--d1)">
+      <div class="ch"><div><div class="ct" style="color:var(--d1)">Day 1 Only</div><div class="csub">580 people · 80.4% of all invitees</div></div></div>
+      <div class="cb">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--d1);line-height:1">580</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:1px">Invited to Day 1 only</div>
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+        <div class="br"><div class="bl">Attended</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="72.4"></div></div><div class="bv">420</div><div class="bp">72%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="0"></div></div><div class="bv">0</div><div class="bp">—</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="8.1"></div></div><div class="bv">47</div><div class="bp">8%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="6.0"></div></div><div class="bv">35</div><div class="bp">6%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="7.1"></div></div><div class="bv">41</div><div class="bp">7%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="5.3"></div></div><div class="bv">31</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl">Term</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="0.2"></div></div><div class="bv">1</div><div class="bp">—</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-top:2px solid var(--d2)">
+      <div class="ch"><div><div class="ct" style="color:var(--d2)">Day 2 Only</div><div class="csub">58 people · 8.0% of all invitees</div></div></div>
+      <div class="cb">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--d2);line-height:1">58</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:1px">Invited to Day 2 only</div>
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+        <div class="br"><div class="bl">Attended</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="53.4"></div></div><div class="bv">31</div><div class="bp">53%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="3.4"></div></div><div class="bv">2</div><div class="bp">3%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="20.7"></div></div><div class="bv">12</div><div class="bp">21%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="13.8"></div></div><div class="bv">8</div><div class="bp">14%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="5.2"></div></div><div class="bv">3</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="3.4"></div></div><div class="bv">2</div><div class="bp">3%</div></div>
+      </div>
+    </div>
+    <div class="card" style="border-top:2px solid #9b59b6">
+      <div class="ch"><div><div class="ct" style="color:#9b59b6">Day 1 &amp; 2 (Both)</div><div class="csub">81 people · 11.2% of all invitees</div></div></div>
+      <div class="cb">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:#9b59b6;line-height:1">81</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:1px">Invited to both days</div>
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+        <div class="br"><div class="bl">Attended Both</div><div class="bt"><div class="bf" style="background:#9b59b6" data-w="54.3"></div></div><div class="bv">44</div><div class="bp">54%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="0"></div></div><div class="bv">0</div><div class="bp">—</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="12.3"></div></div><div class="bv">10</div><div class="bp">12%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="13.6"></div></div><div class="bv">11</div><div class="bp">14%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="11.1"></div></div><div class="bv">9</div><div class="bp">11%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="3.7"></div></div><div class="bv">3</div><div class="bp">4%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overall Funnel -->
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="ch"><div><div class="ct">Overall Invitation Funnel</div><div class="csub">721 total unique invitees</div></div></div>
+      <div class="cb">
+        <div class="dlbl">Invitation Composition</div>
+        <div class="br"><div class="bl">Day 1 Only</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="80.4"></div></div><div class="bv">580</div><div class="bp">80%</div></div>
+        <div class="br"><div class="bl">Day 1 &amp; 2 (Both)</div><div class="bt"><div class="bf" style="background:#9b59b6" data-w="11.2"></div></div><div class="bv">81</div><div class="bp">11%</div></div>
+        <div class="br"><div class="bl">Day 2 Only</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="8.0"></div></div><div class="bv">58</div><div class="bp">8%</div></div>
+        <div style="height:1px;background:var(--border);margin:14px 0"></div>
+        <div class="dlbl">Outcome (all 721)</div>
+        <div class="br"><div class="bl">Attended (any day)</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="70.0"></div></div><div class="bv">505</div><div class="bp">70%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="9.6"></div></div><div class="bv">69</div><div class="bp">10%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="7.6"></div></div><div class="bv">55</div><div class="bp">8%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="7.4"></div></div><div class="bv">53</div><div class="bp">7%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="5.0"></div></div><div class="bv">36</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="0.8"></div></div><div class="bv">6</div><div class="bp">1%</div></div>
+        <div class="br"><div class="bl">Term</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="0.1"></div></div><div class="bv">1</div><div class="bp">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><div><div class="ct">Track-Level Totals</div><div class="csub">People appear in D1-track AND D2-track if invited to both</div></div></div>
+      <div class="cb">
+        <div class="dlbl">D1-Track (Day 1 Only + Both) = 661 invitees</div>
+        <div class="br"><div class="bl">Attended D1</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="71.7"></div></div><div class="bv">474</div><div class="bp">72%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="1.4"></div></div><div class="bv">9</div><div class="bp">1%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="8.6"></div></div><div class="bv">57</div><div class="bp">9%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="7.0"></div></div><div class="bv">46</div><div class="bp">7%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="7.6"></div></div><div class="bv">50</div><div class="bp">8%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="5.1"></div></div><div class="bv">34</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl">Term</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="0.2"></div></div><div class="bv">1</div><div class="bp">—</div></div>
+        <div style="height:1px;background:var(--border);margin:14px 0"></div>
+        <div class="dlbl">D2-Track (Day 2 Only + Both) = 139 invitees</div>
+        <div class="br"><div class="bl">Attended D2</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="54.0"></div></div><div class="bv">75</div><div class="bp">54%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="4.3"></div></div><div class="bv">6</div><div class="bp">4%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="15.8"></div></div><div class="bv">22</div><div class="bp">16%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="13.7"></div></div><div class="bv">19</div><div class="bp">14%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="8.6"></div></div><div class="bv">12</div><div class="bp">9%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="3.6"></div></div><div class="bv">5</div><div class="bp">4%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DAY 1 HERO ── -->
+  <div class="day-divider d1" style="margin-top:6px"><span>● Day 1</span></div>
+
+  <div class="g6" style="margin-bottom:14px">
+    <div class="card d1-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--d1)">474</div>
+      <div class="mlbl">RSVP Yes</div>
+      <div class="mnote">Google Sheet</div>
+    </div></div>
+    <div class="card d1-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--d1)">474</div>
+      <div class="mlbl">Attended</div>
+      <div class="mnote" style="color:var(--d1)">100% show-up</div>
+    </div></div>
+    <div class="card d1-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--await)">73</div>
+      <div class="mlbl">Awaiting</div>
+      <div class="mnote">57 no resp + 16 deferred</div>
+    </div></div>
+    <div class="card d1-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--blue)">547</div>
+      <div class="mlbl">Total Possible Max</div>
+      <div class="mnote">Yes + Awaiting</div>
+    </div></div>
+    <div class="card d1-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--muted)">0</div>
+      <div class="mlbl">No-Shows</div>
+      <div class="mnote">All confirmed attended</div>
+    </div></div>
+    <div class="card d1-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--red)">46</div>
+      <div class="mlbl">Deferred Q2</div>
+      <div class="mnote">From D1-track</div>
+    </div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card d1-accent">
+      <div class="ch"><div><div class="ct">Day 1 — RSVP Composition</div><div class="csub">547 total possible max (Google Sheet)</div></div></div>
+      <div class="cb">
+        <div class="stk" id="stk-d1" style="height:13px"></div>
+        <div class="stkleg" style="margin-bottom:16px">
+          <div class="stkli"><div class="stkd" style="background:var(--d1)"></div>Yes 474 (86.7%) = 474 attended</div>
+          <div class="stkli"><div class="stkd" style="background:var(--await)"></div>Awaiting 73 (13.3%)</div>
+        </div>
+        <div class="dlbl">Show-Up Rate</div>
+        <div class="br"><div class="bl w120">Attended (474 of 474)</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="100"></div></div><div class="bv" style="color:var(--d1)">100%</div></div>
+        <div class="dlbl" style="margin-top:14px">Office vs. Remote (D1 attended)</div>
+        <div class="br"><div class="bl w120">Office-Based</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="61.1"></div></div><div class="bv">284</div><div class="bp">61%</div></div>
+        <div class="br"><div class="bl w120">Remote</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="38.9"></div></div><div class="bv">181</div><div class="bp">39%</div></div>
+        <div class="dlbl" style="margin-top:14px">Country (D1 attended)</div>
+        <div class="br"><div class="bl w120">United States</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="94.8"></div></div><div class="bv">441</div><div class="bp">95%</div></div>
+        <div class="br"><div class="bl w120">Canada</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="4.7"></div></div><div class="bv">22</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl w120">Poland</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="0.4"></div></div><div class="bv">2</div><div class="bp">&lt;1%</div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <div class="co g">
+        <div class="cotag">✓ Day 1 Headline</div>
+        <div class="cotitle">100% show-up rate — perfect execution</div>
+        <div class="cotext">474 confirmed; 474 attended. Zero no-shows. A perfect confirmation-to-attendance ratio for a 500+ person event.</div>
+      </div>
+      <div class="co a">
+        <div class="cotag">⚑ Day 1 Watch</div>
+        <div class="cotitle">73 Day 1 awaiters — not declines, still reachable</div>
+        <div class="cotext">57 never responded; 46 were deferred to Q2 from the D1-track (35 Day 1 Only + 11 from Day 1&2 group). None have said no — prime Q2 re-invitation candidates.</div>
+      </div>
+      <div class="co b">
+        <div class="cotag">◎ Day 1 Note</div>
+        <div class="cotitle">Day 1 "No" = 0 in Google Sheet — declines removed from tracker</div>
+        <div class="cotext">Total Possible Max (547) reflects only the reachable pool: 474 Yes + 73 Awaiting. 84 people declined or cancelled from the D1-track but are excluded from this count.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DAY 2 HERO ── -->
+  <div class="day-divider d2" style="margin-top:10px"><span>● Day 2</span></div>
+
+  <div class="g6" style="margin-bottom:14px">
+    <div class="card d2-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--d2)">81</div>
+      <div class="mlbl">RSVP Yes</div>
+      <div class="mnote">Google Sheet</div>
+    </div></div>
+    <div class="card d2-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--d2)">75</div>
+      <div class="mlbl">Attended</div>
+      <div class="mnote" style="color:var(--d2)">92.6% show-up</div>
+    </div></div>
+    <div class="card d2-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--await)">30</div>
+      <div class="mlbl">Awaiting</div>
+      <div class="mnote">22 no resp + 8 deferred</div>
+    </div></div>
+    <div class="card d2-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--no)">28</div>
+      <div class="mlbl">No</div>
+      <div class="mnote">12 dec + 11 def + 5 can</div>
+    </div></div>
+    <div class="card d2-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--blue)">111</div>
+      <div class="mlbl">Total Possible Max</div>
+      <div class="mnote">81 Yes + 30 Awaiting</div>
+    </div></div>
+    <div class="card d2-accent"><div class="mstat">
+      <div class="mnum" style="color:var(--muted)">6</div>
+      <div class="mlbl">No-Shows</div>
+      <div class="mnote">Confirmed, didn't come</div>
+    </div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card d2-accent">
+      <div class="ch"><div><div class="ct">Day 2 — RSVP Composition</div><div class="csub">139 total D2-track invitees</div></div></div>
+      <div class="cb">
+        <div class="stk" id="stk-d2" style="height:13px"></div>
+        <div class="stkleg" style="margin-bottom:16px">
+          <div class="stkli"><div class="stkd" style="background:var(--d2)"></div>Yes 81 (58.3%)</div>
+          <div class="stkli"><div class="stkd" style="background:var(--await)"></div>Awaiting 30 (21.6%)</div>
+          <div class="stkli"><div class="stkd" style="background:var(--no)"></div>No 28 (20.1%)</div>
+        </div>
+        <div class="dlbl">Show-Up Rate</div>
+        <div class="br"><div class="bl w120">Attended (75 of 81)</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="92.6"></div></div><div class="bv" style="color:var(--d2)">92.6%</div></div>
+        <div class="dlbl" style="margin-top:14px">Office vs. Remote (D2 attended)</div>
+        <div class="br"><div class="bl w120">Office-Based</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="61.3"></div></div><div class="bv">46</div><div class="bp">61%</div></div>
+        <div class="br"><div class="bl w120">Remote</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="38.7"></div></div><div class="bv">29</div><div class="bp">39%</div></div>
+        <div class="dlbl" style="margin-top:14px">Country (D2 attended)</div>
+        <div class="br"><div class="bl w120">United States</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="90.7"></div></div><div class="bv">68</div><div class="bp">91%</div></div>
+        <div class="br"><div class="bl w120">Canada</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="9.3"></div></div><div class="bv">7</div><div class="bp">9%</div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <div class="co t">
+        <div class="cotag">◎ Day 2 Headline</div>
+        <div class="cotitle">75 leaders attended — 92.6% of confirmed RSVPs</div>
+        <div class="cotext">6 no-shows (7.4%) — compared to Day 1's 0%. Leader schedules are more volatile. A morning-of confirmation ping for Day 2 could recover 2–4 of these seats in Q2.</div>
+      </div>
+      <div class="co r">
+        <div class="cotag">⚑ Day 2 Watch</div>
+        <div class="cotitle">28 "No" — Day 2 has more hard declines than Day 1</div>
+        <div class="cotext">12 declined outright, 11 deferred out of the Day 1+2 leaders track, 5 cancelled. The 30 awaiters haven't said no — targeted re-outreach could improve Day 2 reach in Q2.</div>
+      </div>
+      <div class="co a">
+        <div class="cotag">◎ Day 2 Note</div>
+        <div class="cotitle">Day 2 total possible max = 111 (81 Yes + 30 Awaiting)</div>
+        <div class="cotext">The 28 Nos are excluded from the max. Of the 139 total Day 2 invitees, only 111 remain reachable — meaning 20% of the Day 2 pipeline has already closed out.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMBINED RECONCILIATION ── -->
+  <div class="day-divider" style="margin-top:10px"><span style="color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">Combined</span></div>
+
+  <!-- Full invitation outcomes table -->
+  <div class="card mb">
+    <div class="ch"><div><div class="ct">Complete Invitation Outcomes by Group</div><div class="csub">721 unique invitees · sourced from registration file</div></div></div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th class="r">Day 1 Only<br><span style="font-weight:400;color:var(--muted)">(580)</span></th>
+          <th class="r">Day 2 Only<br><span style="font-weight:400;color:var(--muted)">(58)</span></th>
+          <th class="r">Both Days<br><span style="font-weight:400;color:var(--muted)">(81)</span></th>
+          <th class="r">Overall<br><span style="font-weight:400;color:var(--muted)">(721)</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(31,190,94,.04)"><td><b>Attended</b></td><td class="r" style="color:var(--d1);font-weight:700">420</td><td class="r" style="color:var(--d2);font-weight:700">31</td><td class="r" style="color:#9b59b6;font-weight:700">44</td><td class="r" style="font-weight:700">496</td></tr>
+        <tr><td>No Show</td><td class="r">5</td><td class="r">2</td><td class="r">4</td><td class="r" style="color:var(--no)">11</td></tr>
+        <tr><td>No Response</td><td class="r">47</td><td class="r">12</td><td class="r">10</td><td class="r" style="color:var(--await)">69</td></tr>
+        <tr><td>Add to Q2</td><td class="r">35</td><td class="r">8</td><td class="r">11</td><td class="r" style="color:var(--await)">55</td></tr>
+        <tr><td>Declined</td><td class="r">41</td><td class="r">3</td><td class="r">9</td><td class="r" style="color:var(--no)">53</td></tr>
+        <tr><td>Cancelled</td><td class="r">31</td><td class="r">2</td><td class="r">3</td><td class="r" style="color:var(--no)">36</td></tr>
+        <tr><td>Term</td><td class="r">1</td><td class="r">—</td><td class="r">—</td><td class="r">1</td></tr>
+        <tr class="tot"><td>Total</td><td class="r">580</td><td class="r">58</td><td class="r">81</td><td class="r">721</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card mb">
+    <div class="ch"><div><div class="ct">Full RSVP vs. Actual Reconciliation</div><div class="csub">Google Sheet (RSVP) + registration system (attended)</div></div></div>
+    <table class="tbl">
+      <thead><tr><th>Metric</th><th class="d1h">Day 1 Track</th><th class="d2h">Day 2 Track</th><th class="r">Overall</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Track Invitees</td><td class="r">661</td><td class="r">139</td><td class="r">721 unique</td><td style="color:var(--muted);font-size:10px">81 "Both Days" appear in both tracks</td></tr>
+        <tr><td><b>RSVP Yes</b></td><td class="r" style="color:var(--d1);font-weight:700">474</td><td class="r" style="color:var(--d2);font-weight:700">81</td><td class="r">—</td><td style="color:var(--muted);font-size:10px">Google Sheet · incl. confirmed no-shows</td></tr>
+        <tr><td>Awaiting</td><td class="r" style="color:var(--await)">73</td><td class="r" style="color:var(--await)">30</td><td class="r" style="color:var(--await)">103</td><td style="color:var(--muted);font-size:10px">Not declines — still reachable</td></tr>
+        <tr><td>No (Google Sheet)</td><td class="r" style="color:var(--muted)">0 tracked</td><td class="r" style="color:var(--no)">28</td><td class="r">—</td><td style="color:var(--muted);font-size:10px">D1 Nos removed from tracker · D2 tracked</td></tr>
+        <tr><td><b>Total Possible Max</b></td><td class="r" style="color:var(--blue);font-weight:700">547</td><td class="r" style="color:var(--blue);font-weight:700">111</td><td class="r">—</td><td style="color:var(--muted);font-size:10px">Yes + Awaiting only</td></tr>
+        <tr style="border-top:1px solid var(--border)"><td><b>Actually Attended</b></td><td class="r" style="font-weight:700">474</td><td class="r" style="font-weight:700">75</td><td class="r" style="font-weight:700">505 unique</td><td style="color:var(--muted);font-size:10px">44 "Both Days" attendees counted in both tracks</td></tr>
+        <tr><td>No-Shows</td><td class="r" style="color:var(--no)">0</td><td class="r" style="color:var(--no)">6</td><td class="r" style="color:var(--no)">6 unique</td><td style="color:var(--muted);font-size:10px">4 "Both Days" no-shows in both track counts</td></tr>
+        <tr><td><b>Show-Up Rate</b></td><td class="r"><span class="tag tg">100%</span></td><td class="r"><span class="tag tt">92.6%</span></td><td class="r"><span class="tag tg">99.4%</span></td><td style="color:var(--muted);font-size:10px">Attended ÷ RSVP Yes</td></tr>
+        <tr><td>Overall Attendance Rate</td><td class="r"><span class="tag tb">71.7%</span></td><td class="r"><span class="tag ta">54.0%</span></td><td class="r"><span class="tag tb">70.0%</span></td><td style="color:var(--muted);font-size:10px">Attended ÷ Track Invitees</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BY FUNCTION
+════════════════════════════════════════════════════════ -->
+<section id="function" class="sec">
+  <div class="stitle">Attendance by Function</div>
+
+  <div class="day-divider d1"><span>● Day 1</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">Day 1 — Attended by Function</div><div class="csub">474 attended</div></div></div><div class="cb" id="fn-d1-vol"></div></div>
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">Day 1 — Attendance Rate</div><div class="csub">Attended ÷ D1-track invited</div></div></div><div class="cb" id="fn-d1-rate"></div></div>
+  </div>
+
+  <div class="day-divider d2"><span>● Day 2</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 — Attended by Function</div><div class="csub">75 attended</div></div></div><div class="cb" id="fn-d2-vol"></div></div>
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 — Attendance Rate</div><div class="csub">Attended ÷ D2-track invited</div></div></div><div class="cb" id="fn-d2-rate"></div></div>
+  </div>
+
+  <div class="card mb">
+    <div class="ch"><div><div class="ct">Full Function Breakdown — Both Days</div></div></div>
+    <table class="tbl">
+      <thead><tr><th>Function</th><th class="r">Total Invited</th><th class="d1h">D1 Attended</th><th class="d1h">D1 Rate</th><th class="d2h">D2 Attended</th><th class="d2h">D2 Rate</th><th class="r">Deferred Q2</th></tr></thead>
+      <tbody id="fn-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="g2">
+    <div class="co g"><div class="cotag">★ D1 Best Rate</div><div class="cotitle">Legal (91%) and Finance &amp; Ops (83%) led Day 1</div><div class="cotext">Legal: 10 of 11 D1-track invites attended. Finance &amp; Ops: 44 of 53. Talent at 82% (31/38). These functions show the tightest attendance discipline on Day 1.</div></div>
+    <div class="co t"><div class="cotag">★ D2 Best</div><div class="cotitle">Games (79%) led Day 2 attendance rate</div><div class="cotext">Games sent 11 of 14 Day 2-track invitees (79%). Talent and Finance &amp; Ops both hit 70% (7/10 and 7/11 respectively). P&amp;T was 55% (36/65) — lowest rate but highest absolute volume.</div></div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BY LEVEL
+════════════════════════════════════════════════════════ -->
+<section id="level" class="sec">
+  <div class="stitle">Attendance by Job Level</div>
+
+  <div class="day-divider d1"><span>● Day 1</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">Day 1 — Rate by Level</div><div class="csub">Attended ÷ D1-track invited</div></div></div><div class="cb" id="lv-d1-rate"></div></div>
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">Day 1 — Volume by Level</div><div class="csub">474 attended</div></div></div><div class="cb" id="lv-d1-vol"></div></div>
+  </div>
+
+  <div class="day-divider d2"><span>● Day 2</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 — Rate by Level</div><div class="csub">Attended ÷ D2-track invited</div></div></div><div class="cb" id="lv-d2-rate"></div></div>
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 — Volume by Level</div><div class="csub">72 people leaders (3 ICs were routing errors)</div></div></div><div class="cb" id="lv-d2-vol"></div></div>
+  </div>
+
+  <div class="card mb">
+    <div class="ch"><div><div class="ct">Full Level Breakdown — Both Days</div></div></div>
+    <table class="tbl">
+      <thead><tr><th>Level</th><th class="r">Total Invited</th><th class="d1h">D1 Attended</th><th class="d1h">D1 Rate</th><th class="d2h">D2 Attended</th><th class="d2h">D2 Rate</th><th class="r">Deferred Q2</th></tr></thead>
+      <tbody id="lv-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="g2">
+    <div class="co r"><div class="cotag">⚠ Senior Gap</div><div class="cotitle">VP (0%) and Officer (0%) — zero senior attendance either day</div><div class="cotext">All 4 VPs and 1 Officer invited did not attend. Senior Directors: 2/7 on D1 (29%), 1/6 on D2 (17%). New hires never saw senior leadership model NEC participation this quarter.</div></div>
+    <div class="co g"><div class="cotag">✓ Leaders Track Working</div><div class="cotitle">Day 2 was people-leader led as designed: 72 of 75 (96%)</div><div class="cotext">Day 1 was IC-led (381/474 = 80%) which is correct. Day 2 flipped entirely to people leaders (40 Mgr + 21 Sr.Mgr + 9 Dir + 1 SD + 1 Unknown = 72 of 75). The 3 ICs were routing errors — not intentional invites.</div></div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════
+     BY LOCATION
+════════════════════════════════════════════════════════ -->
+<section id="location" class="sec">
+  <div class="stitle">Attendance by Location</div>
+
+  <div class="day-divider d1"><span>● Day 1</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">Day 1 — Top Locations</div><div class="csub">474 attended</div></div></div><div class="cb" id="loc-d1-bars"></div></div>
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">Day 1 — All Locations</div></div></div><div class="lgrid" id="loc-d1-grid"></div></div>
+  </div>
+
+  <div class="day-divider d2"><span>● Day 2</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 — Top Locations</div><div class="csub">75 attended</div></div></div><div class="cb" id="loc-d2-bars"></div></div>
+    <div class="card d2-accent">
+      <div class="ch"><div><div class="ct">Day 2 — Office vs. Remote</div></div></div>
+      <div class="cb">
+        <div class="br"><div class="bl">Office-Based</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="61.3"></div></div><div class="bv">46</div><div class="bp">61%</div></div>
+        <div class="br"><div class="bl">Remote</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="38.7"></div></div><div class="bv">29</div><div class="bp">39%</div></div>
+        <div class="co t" style="margin-top:14px">
+          <div class="cotag">◎ Note</div>
+          <div class="cotitle">Los Gatos + LA dominated Day 2</div>
+          <div class="cotext">23 from Los Gatos and 21 from LA = 59% of Day 2 attendance came from just 2 office locations. Remote leaders (29) represent 39% — consistent with the Day 1 split.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════
+     DAY 2 LEADERS DEEP DIVE
+════════════════════════════════════════════════════════ -->
+<section id="day2" class="sec">
+  <div class="stitle">Day 2 — People Leaders Deep Dive</div>
+
+  <div class="g4 mb">
+    <div class="card d2-accent"><div class="sblock"><div class="snum" style="color:var(--d2)">81</div><div class="slbl">RSVP Yes</div><div class="snote" style="color:var(--muted)">Google Sheet</div></div></div>
+    <div class="card d2-accent"><div class="sblock"><div class="snum" style="color:var(--d2)">75</div><div class="slbl">Attended</div><div class="snote" style="color:var(--d2)">92.6% of Yes</div></div></div>
+    <div class="card d2-accent"><div class="sblock"><div class="snum" style="color:var(--await)">30</div><div class="slbl">Awaiting</div><div class="snote" style="color:var(--muted)">22 no-resp + 8 deferred</div></div></div>
+    <div class="card d2-accent"><div class="sblock"><div class="snum" style="color:var(--no)">28</div><div class="slbl">No</div><div class="snote" style="color:var(--muted)">12 dec + 11 defer + 5 can</div></div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 Attended by Level</div><div class="csub">75 total</div></div></div><div class="cb" id="d2deep-lv"></div></div>
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">Day 2 Attended by Function</div><div class="csub">75 total</div></div></div><div class="cb" id="d2deep-fn"></div></div>
+  </div>
+
+  <div class="card mb">
+    <div class="ch"><div><div class="ct">Day 2 — RSVP by Level</div><div class="csub">139 total in D2 tracker</div></div></div>
+    <table class="tbl">
+      <thead><tr><th>Level</th><th class="r">D2 Invited</th><th class="r">Attended</th><th class="r">No-Show</th><th>Show-Up Rate</th></tr></thead>
+      <tbody id="d2-conv-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="g2">
+    <div class="co t"><div class="cotag">◎ Level Mix</div><div class="cotitle">Managers = 56% of the people-leader room (40 of 72)</div><div class="cotext">40 Managers, 21 Senior Managers, 9 Directors, 1 Senior Director, 1 Unknown level — 72 confirmed people leaders. The 3 ICs who attended were invitation routing errors and have been excluded. Fix IC logic before Q2.</div></div>
+    <div class="co r"><div class="cotag">⚑ Director+ Gap</div><div class="cotitle">Director+ was only 14% of the people-leader room (10 of 72)</div><div class="cotext">9 Directors and 1 Senior Director attended. Day 2 is ideally a Director+ enrichment experience but the room skewed Manager-heavy (56%). Consider a separate "senior leader track" or a VP+/Director pre-session for Q2.</div></div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════
+     NON-ATTENDANCE
+════════════════════════════════════════════════════════ -->
+<section id="nonatt" class="sec">
+  <div class="stitle">Non-Attendance</div>
+
+  <!-- ── OVERALL ── -->
+  <div class="day-divider" style="margin-top:0"><span style="color:#fff;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">Overall — All 721 Invitees</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="ch"><div><div class="ct">Overall Status Breakdown</div><div class="csub">721 total unique invitees</div></div></div>
+      <div class="cb">
+        <div class="br"><div class="bl">Attended (any day)</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="70.0"></div></div><div class="bv">505</div><div class="bp">70%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="9.6"></div></div><div class="bv">69</div><div class="bp">10%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="7.6"></div></div><div class="bv">55</div><div class="bp">8%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="7.4"></div></div><div class="bv">53</div><div class="bp">7%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="5.0"></div></div><div class="bv">36</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl">No Show (confirmed)</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="1.5"></div></div><div class="bv">11</div><div class="bp">2%</div></div>
+        <div class="br"><div class="bl">Term</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="0.1"></div></div><div class="bv">1</div><div class="bp">—</div></div>
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+        <div style="font-size:11px;color:var(--muted)">Did not attend: <b style="color:var(--text)">225</b> &nbsp;(31.2% of all invited)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ct">Non-Attendance by Invite Group</div><div class="csub">225 people who did not attend any day</div></div></div>
+      <div class="cb">
+        <div class="dlbl">Day 1 Only invitees (580) — did not attend</div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="100"></div></div><div class="bv">47</div><div class="bp">30%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="87"></div></div><div class="bv">41</div><div class="bp">26%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="74"></div></div><div class="bv">35</div><div class="bp">22%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="66"></div></div><div class="bv">31</div><div class="bp">20%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="11"></div></div><div class="bv">5</div><div class="bp">3%</div></div>
+        <div class="br"><div class="bl">Term</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="2"></div></div><div class="bv">1</div><div class="bp">—</div></div>
+        <div class="dlbl" style="margin-top:13px">Day 2 Only invitees (58) — did not attend</div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="100"></div></div><div class="bv">12</div><div class="bp">44%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="67"></div></div><div class="bv">8</div><div class="bp">30%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="25"></div></div><div class="bv">3</div><div class="bp">11%</div></div>
+        <div class="br"><div class="bl">Cancelled + No Show</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="33"></div></div><div class="bv">4</div><div class="bp">15%</div></div>
+        <div class="dlbl" style="margin-top:13px">Both Days invitees (81) — did not attend</div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="100"></div></div><div class="bv">11</div><div class="bp">30%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="91"></div></div><div class="bv">10</div><div class="bp">27%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="82"></div></div><div class="bv">9</div><div class="bp">24%</div></div>
+        <div class="br"><div class="bl">No Show</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="36"></div></div><div class="bv">4</div><div class="bp">11%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="27"></div></div><div class="bv">3</div><div class="bp">8%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DAY 1 ── -->
+  <div class="day-divider d1"><span>● Day 1 Non-Attendance — D1-Track (661 invitees)</span></div>
+  <div class="g3" style="margin-bottom:14px">
+    <div class="card d1-accent">
+      <div class="ch"><div><div class="ct">D1-Track Status Breakdown</div><div class="csub">661 D1-track invitees (D1 Only + Both Days)</div></div></div>
+      <div class="cb">
+        <div class="br"><div class="bl">Attended D1</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="71.7"></div></div><div class="bv">474</div><div class="bp">72%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="8.6"></div></div><div class="bv">57</div><div class="bp">9%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="7.6"></div></div><div class="bv">50</div><div class="bp">8%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="7.0"></div></div><div class="bv">46</div><div class="bp">7%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="5.1"></div></div><div class="bv">34</div><div class="bp">5%</div></div>
+        <div class="br"><div class="bl">No Show (confirmed)</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="1.4"></div></div><div class="bv">9</div><div class="bp">1%</div></div>
+        <div class="br"><div class="bl">Term</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="0.2"></div></div><div class="bv">1</div><div class="bp">—</div></div>
+        <div style="height:1px;background:var(--border);margin:10px 0"></div>
+        <div class="dlbl">By invite sub-group</div>
+        <div class="br"><div class="bl" style="font-size:10px">Day 1 Only (580) attended</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="72.4"></div></div><div class="bv">420</div><div class="bp">72%</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">Both Days (81) attended D1</div><div class="bt"><div class="bf" style="background:var(--d1)" data-w="54.3"></div></div><div class="bv">44</div><div class="bp">54%</div></div>
+      </div>
+    </div>
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">D1 No-Response by Function</div><div class="csub">57 total (D1-track)</div></div></div><div class="cb" id="na-d1-func"></div></div>
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">D1 Deferred Q2 by Function</div><div class="csub">46 from D1-track</div></div></div><div class="cb" id="na-d1-def"></div></div>
+  </div>
+
+  <!-- ── DAY 2 ── -->
+  <div class="day-divider d2"><span>● Day 2 Non-Attendance — D2-Track (139 invitees)</span></div>
+  <div class="g3" style="margin-bottom:14px">
+    <div class="card d2-accent">
+      <div class="ch"><div><div class="ct">D2-Track Status Breakdown</div><div class="csub">139 D2-track invitees (D2 Only + Both Days)</div></div></div>
+      <div class="cb">
+        <div class="br"><div class="bl">Attended D2</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="54.0"></div></div><div class="bv">75</div><div class="bp">54%</div></div>
+        <div class="br"><div class="bl">No Response</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="15.8"></div></div><div class="bv">22</div><div class="bp">16%</div></div>
+        <div class="br"><div class="bl">Add to Q2</div><div class="bt"><div class="bf" style="background:var(--await)" data-w="13.7"></div></div><div class="bv">19</div><div class="bp">14%</div></div>
+        <div class="br"><div class="bl">Declined</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="8.6"></div></div><div class="bv">12</div><div class="bp">9%</div></div>
+        <div class="br"><div class="bl">No Show (confirmed)</div><div class="bt"><div class="bf" style="background:var(--muted)" data-w="4.3"></div></div><div class="bv">6</div><div class="bp">4%</div></div>
+        <div class="br"><div class="bl">Cancelled</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="3.6"></div></div><div class="bv">5</div><div class="bp">4%</div></div>
+        <div style="height:1px;background:var(--border);margin:10px 0"></div>
+        <div class="dlbl">By invite sub-group</div>
+        <div class="br"><div class="bl" style="font-size:10px">Day 2 Only (58) attended</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="53.4"></div></div><div class="bv">31</div><div class="bp">53%</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">Both Days (81) attended D2</div><div class="bt"><div class="bf" style="background:var(--d2)" data-w="54.3"></div></div><div class="bv">44</div><div class="bp">54%</div></div>
+      </div>
+    </div>
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">D2 No-Response by Function</div><div class="csub">22 total (D2-track)</div></div></div><div class="cb" id="na-d2-func"></div></div>
+    <div class="card d2-accent">
+      <div class="ch"><div><div class="ct">D2 "No" Composition</div><div class="csub">28 total tracked as No in Google Sheet</div></div></div>
+      <div class="cb">
+        <div class="br"><div class="bl">Declined (D2-track)</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="100"></div></div><div class="bv">12</div><div class="bp">43%</div></div>
+        <div class="br"><div class="bl">Deferred Q2 (Both Days track)</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="79"></div></div><div class="bv">11</div><div class="bp">39%</div></div>
+        <div class="br"><div class="bl">Cancelled (D2-track)</div><div class="bt"><div class="bf" style="background:var(--no)" data-w="38"></div></div><div class="bv">5</div><div class="bp">18%</div></div>
+        <div class="co r" style="margin-top:14px"><div class="cotag">◎ Note</div><div class="cotitle">28 = 12 declined + 11 deferred (Both Days track) + 5 cancelled</div><div class="cotext">Day 2-only deferrals (8) count as "Awaiting" in the Google Sheet — they haven't said no and are moving to Q2 Day 2.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SUMMARY TABLE ── -->
+  <div class="card">
+    <div class="ch"><div><div class="ct">Full Non-Attendance Summary — All Groups</div><div class="csub">Registration file · every status by invite group</div></div></div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th class="r">D1 Only<br><span style="font-weight:400;color:var(--muted)">(580)</span></th>
+          <th class="r">D2 Only<br><span style="font-weight:400;color:var(--muted)">(58)</span></th>
+          <th class="r">Both Days<br><span style="font-weight:400;color:var(--muted)">(81)</span></th>
+          <th class="d1h">D1-Track<br><span style="font-weight:400;color:var(--muted)">(661)</span></th>
+          <th class="d2h">D2-Track<br><span style="font-weight:400;color:var(--muted)">(139)</span></th>
+          <th class="r">Overall<br><span style="font-weight:400;color:var(--muted)">(721)</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(31,190,94,.04)"><td><b>Attended</b></td><td class="r" style="color:var(--d1);font-weight:700">420</td><td class="r" style="color:var(--d2);font-weight:700">31</td><td class="r" style="color:#9b59b6;font-weight:700">44</td><td class="r" style="color:var(--d1);font-weight:700">474</td><td class="r" style="color:var(--d2);font-weight:700">75</td><td class="r" style="font-weight:700">505</td></tr>
+        <tr><td>No Response</td><td class="r">47</td><td class="r">12</td><td class="r">10</td><td class="r" style="color:var(--await)">57</td><td class="r" style="color:var(--await)">22</td><td class="r" style="color:var(--await)">69</td></tr>
+        <tr><td>Add to Q2</td><td class="r">35</td><td class="r">8</td><td class="r">11</td><td class="r" style="color:var(--await)">46</td><td class="r" style="color:var(--await)">19</td><td class="r" style="color:var(--await)">55</td></tr>
+        <tr><td>Declined</td><td class="r">41</td><td class="r">3</td><td class="r">9</td><td class="r" style="color:var(--no)">50</td><td class="r" style="color:var(--no)">12</td><td class="r" style="color:var(--no)">53</td></tr>
+        <tr><td>Cancelled</td><td class="r">31</td><td class="r">2</td><td class="r">3</td><td class="r" style="color:var(--no)">34</td><td class="r" style="color:var(--no)">5</td><td class="r" style="color:var(--no)">36</td></tr>
+        <tr><td>No Show</td><td class="r">5</td><td class="r">2</td><td class="r">4</td><td class="r">9</td><td class="r">6</td><td class="r">11</td></tr>
+        <tr><td>Term</td><td class="r">1</td><td class="r">—</td><td class="r">—</td><td class="r">1</td><td class="r">—</td><td class="r">1</td></tr>
+        <tr class="tot"><td>Total</td><td class="r">580</td><td class="r">58</td><td class="r">81</td><td class="r">661</td><td class="r">139</td><td class="r">721</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════
+     Q2 PIPELINE
+════════════════════════════════════════════════════════ -->
+<section id="q2" class="sec">
+  <div class="stitle">Q2 2026 Pipeline</div>
+
+  <div class="co r mb">
+    <div class="cotag">◎ Q2 Floor — Already Known</div>
+    <div class="cotitle">55 confirmed deferrals + 103 awaiters = Q2 starts pre-loaded across both tracks</div>
+    <div class="cotext">46 D1-track deferrals + 19 D2-track deferrals (some overlap in the Day 1+2 group, net 55 unique people). Add 103 awaiters who haven't said no. Even at 40% conversion that's ~41 more. Then add Q2 new-hire volume (400–550 historically). A single-event format cannot absorb this demand.</div>
+  </div>
+
+  <div class="day-divider d1"><span>● Day 1 Deferred</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">D1 Deferred — by Function</div><div class="csub">46 from D1-track invitees</div></div></div><div class="cb" id="q2-d1-fn"></div></div>
+    <div class="card d1-accent"><div class="ch"><div><div class="ct">D1 Deferred — by Level</div><div class="csub">46 from D1-track invitees</div></div></div><div class="cb" id="q2-d1-lv"></div></div>
+  </div>
+
+  <div class="day-divider d2"><span>● Day 2 Deferred</span></div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">D2 Deferred — by Function</div><div class="csub">19 from D2-track invitees</div></div></div><div class="cb" id="q2-d2-fn"></div></div>
+    <div class="card d2-accent"><div class="ch"><div><div class="ct">D2 Deferred — by Level</div><div class="csub">19 from D2-track invitees</div></div></div><div class="cb" id="q2-d2-lv"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div><div class="ct">Q2 Capacity Scenario Model</div><div class="csub">Based on Google Sheet actuals + historical volume</div></div></div>
+    <div class="cb">
+      <table class="tbl">
+        <thead><tr><th>Demand Source</th><th class="r">Conservative</th><th class="r">Likely</th><th class="r">High</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Q1 Confirmed Deferrals</td><td class="r">55</td><td class="r">55</td><td class="r">55</td><td style="color:var(--muted);font-size:10px">Hard floor · Google Sheet</td></tr>
+          <tr><td>Awaiter Conversion (of 103)</td><td class="r">0</td><td class="r">40</td><td class="r">70</td><td style="color:var(--muted);font-size:10px">~40–70% re-engage when re-invited</td></tr>
+          <tr><td>Q2 New Hire Volume</td><td class="r">350</td><td class="r">450</td><td class="r">550</td><td style="color:var(--muted);font-size:10px">Historical Q2 range: 400–550</td></tr>
+          <tr class="tot">
+            <td>Total Q2 Demand</td>
+            <td class="r" style="color:var(--d1)">405</td>
+            <td class="r" style="color:var(--await)">545</td>
+            <td class="r" style="color:var(--no)">675</td>
+            <td style="color:var(--muted);font-size:10px">Venue cap ~550/day</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="co a" style="margin-top:13px">
+        <div class="cotag">◎ Recommendation</div>
+        <div class="cotitle">Likely scenario (545) hits venue cap with zero buffer — Double-Header required for Q2</div>
+        <div class="cotext">Conservative (405) is the only scenario where a single event works — and it requires zero awaiter conversion, which is unrealistic. Plan Q2 as a Double-Header now and avoid a last-minute scramble when registrations exceed capacity.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  <span>Q1 2026 NEC Attendance · UCAN · RSVP: Google Sheet (authoritative) · Breakdown: registration system · Names excluded</span>
+  <span>February 2026 · Confidential</span>
+</div>
+
+<script>
+// ── ALL DATA ──────────────────────────────────────────────────────────────
+const D = {
+  // Function data (D1 invited = D1-track only, D2 invited = D2-track only)
+  fn: [
+    {n:'Products & Technology', inv:378, d1inv:349, d1:232, d2inv:65, d2:36, def:30},
+    {n:'Marketing',             inv:68,  d1inv:62,  d1:49,  d2inv:12, d2:7,  def:5},
+    {n:'Content',               inv:66,  d1inv:56,  d1:40,  d2inv:13, d2:4,  def:6},
+    {n:'Finance & Operations',  inv:58,  d1inv:53,  d1:44,  d2inv:11, d2:7,  def:2},
+    {n:'Games',                 inv:44,  d1inv:44,  d1:30,  d2inv:14, d2:11, def:4},
+    {n:'Talent',                inv:42,  d1inv:38,  d1:31,  d2inv:10, d2:7,  def:3},
+    {n:'Ads',                   inv:40,  d1inv:39,  d1:25,  d2inv:7,  d2:1,  def:2},
+    {n:'Legal',                 inv:12,  d1inv:11,  d1:10,  d2inv:2,  d2:0,  def:1},
+    {n:'Global Comms',          inv:9,   d1inv:7,   d1:3,   d2inv:3,  d2:2,  def:0},
+    {n:'Global Affairs',        inv:3,   d1inv:2,   d1:1,   d2inv:1,  d2:0,  def:1},
+  ],
+  // Level data
+  lv: [
+    {n:'Individual Contributor', inv:534, d1inv:526, d1:381, d2inv:0,  d2:0,  def:35},
+    {n:'Manager',                inv:104, d1inv:72,  d1:47,  d2inv:67, d2:40, def:9},
+    {n:'Senior Manager',         inv:48,  d1inv:33,  d1:25,  d2inv:34, d2:21, def:5},
+    {n:'Director',               inv:20,  d1inv:17,  d1:10,  d2inv:17, d2:9,  def:4},
+    {n:'Senior Director',        inv:7,   d1inv:7,   d1:2,   d2inv:6,  d2:1,  def:1},
+    {n:'Vice President',         inv:4,   d1inv:4,   d1:0,   d2inv:4,  d2:0,  def:0},
+    {n:'Officer',                inv:1,   d1inv:1,   d1:0,   d2inv:0,  d2:0,  def:0},
+  ],
+  // Location data
+  locD1: [
+    ['Los Angeles',147],['Los Gatos',89],['California - Remote',46],
+    ['Washington - Remote',45],['New York',38],['Ontario - Remote',11],
+    ['Texas - Remote',10],['New York - Remote',9],['Colorado - Remote',7],
+    ['Quebec - Remote',6],['Florida - Remote',5],['Virginia - Remote',5],
+    ['New Jersey - Remote',5],['Oregon - Remote',4],['Pennsylvania - Remote',3],
+    ['Toronto',3],['Georgia - Remote',3],['Minnesota - Remote',2],
+    ['Massachusetts - Remote',2],['Washington DC - Remote',2],
+  ],
+  locD2: [
+    ['Los Gatos',23],['Los Angeles',21],['California - Remote',5],
+    ['Ontario - Remote',5],['Colorado - Remote',4],['Washington - Remote',3],
+    ['Quebec - Remote',2],['New York',2],['Minnesota - Remote',1],
+    ['New York - Remote',1],['Ohio - Remote',1],['Massachusetts - Remote',1],
+    ['Florida - Remote',1],['Washington DC - Remote',1],['Wisconsin - Remote',1],
+  ],
+  // Day 2 deep dive
+  d2Conv: [
+    {n:'Manager',         d2inv:67, att:40, ns:5},
+    {n:'Senior Manager',  d2inv:34, att:21, ns:0},
+    {n:'Director',        d2inv:17, att:9,  ns:0},
+    {n:'Senior Director', d2inv:6,  att:1,  ns:1},
+    {n:'Vice President',  d2inv:4,  att:0,  ns:0},
+    {n:'Unknown Level',   d2inv:2,  att:1,  ns:0},
+  ],
+  // Non-attendance: D1 no-response by function
+  naD1Func: [{n:'P&T',v:37},{n:'Marketing',v:6},{n:'Content',v:5},{n:'Finance & Ops',v:2},{n:'Ads',v:2},{n:'Legal',v:1},{n:'Talent',v:1},{n:'Global Comms',v:1},{n:'Games',v:1},{n:'Global Affairs',v:1}],
+  // D1 deferred by function (46 from D1 track)
+  naD1Def: [{n:'P&T',v:19},{n:'Content',v:5},{n:'Marketing',v:4},{n:'Games',v:4},{n:'Talent',v:3},{n:'Ads',v:2},{n:'Finance & Ops',v:2},{n:'Legal',v:1},{n:'Global Affairs',v:1}],
+  // D2 no-response by function
+  naD2Func: [{n:'P&T',v:10},{n:'Content',v:4},{n:'Marketing',v:3},{n:'Games',v:2},{n:'Finance & Ops',v:1},{n:'Talent',v:1},{n:'Legal',v:1}],
+  // Q2 deferred by function/level (all 55)
+  q2Fn: [{n:'Products & Technology',v:30},{n:'Content',v:6},{n:'Marketing',v:5},{n:'Games',v:4},{n:'Talent',v:3},{n:'Ads',v:2},{n:'Finance & Operations',v:2},{n:'Legal',v:1},{n:'Global Affairs',v:1}],
+  q2Lv: [{n:'Individual Contributor',v:35},{n:'Manager',v:9},{n:'Senior Manager',v:5},{n:'Director',v:4},{n:'Senior Director',v:1}],
+  // D1 deferred (46)
+  q2D1Fn: [{n:'P&T',v:19},{n:'Content',v:5},{n:'Marketing',v:4},{n:'Games',v:4},{n:'Talent',v:3},{n:'Ads',v:2},{n:'Finance & Ops',v:2},{n:'Legal',v:1},{n:'Global Affairs',v:1}],
+  q2D1Lv: [{n:'Individual Contributor',v:29},{n:'Manager',v:7},{n:'Senior Manager',v:4},{n:'Director',v:4},{n:'Senior Director',v:1}],
+  // D2 deferred (19)
+  q2D2Fn: [{n:'P&T',v:11},{n:'Content',v:1},{n:'Marketing',v:1},{n:'Games',v:1},{n:'Talent',v:1},{n:'Finance & Ops',v:1},{n:'Ads',v:1}],
+  q2D2Lv: [{n:'Manager',v:9},{n:'Senior Manager',v:4},{n:'Director',v:2},{n:'Senior Director',v:1}],
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const rc = (r,base) => r >= (base||72) ? 'var(--d1)' : r >= 55 ? 'var(--await)' : 'var(--no)';
+const rtag = (r,base) => { const c = r>=(base||72)?'tg':r>=55?'ta':'tr'; return `<span class="tag ${c}">${r}%</span>`; };
+const trig = el => setTimeout(() => el.querySelectorAll('.bf').forEach(b => b.style.width = b.dataset.w + '%'), 70);
+
+function simpleBars(elId, items, color, maxV, base) {
+  const el = $(elId); if (!el) return;
+  const vals = items.map(r => r.v !== undefined ? r.v : (r.d1||r.d2||0));
+  const mx = maxV || Math.max(...vals);
+  el.innerHTML = items.map((r, i) => {
+    const v = r.v !== undefined ? r.v : (r.d1||r.d2||0);
+    const w = mx ? (v/mx*100).toFixed(1) : 0;
+    const c = (v===0) ? 'var(--dim)' : color;
+    const bpHtml = base ? `<div class="bp">${Math.round(v/base*100)}%</div>` : '';
+    return `<div class="br" style="animation-delay:${i*.05}s">
+      <div class="bl">${r.n}</div>
+      <div class="bt"><div class="bf" style="background:${c}" data-w="${w}"></div></div>
+      <div class="bv">${v}</div>${bpHtml}
+    </div>`;
+  }).join('');
+  trig(el);
+}
+
+function rateBars(elId, items, attKey, invKey, color) {
+  const el = $(elId); if (!el) return;
+  el.innerHTML = items.map((d, i) => {
+    const r = d[invKey] ? Math.round(d[attKey]/d[invKey]*100) : 0;
+    const c = (d[attKey]===0) ? 'var(--dim)' : rc(r);
+    return `<div class="br" style="animation-delay:${i*.05}s">
+      <div class="bl">${d.n}</div>
+      <div class="bt"><div class="bf" style="background:${c}" data-w="${d[attKey]===0?0:r}"></div></div>
+      <div class="bv" style="color:${c}">${d[attKey]===0?'0%':r+'%'}</div>
+    </div>`;
+  }).join('');
+  trig(el);
+}
+
+function fnTable() {
+  const el = $('fn-tbody'); if (!el) return;
+  let t = {inv:0,d1:0,d2:0,def:0};
+  el.innerHTML = D.fn.map(d => {
+    const r1 = d.d1inv ? Math.round(d.d1/d.d1inv*100) : 0;
+    const r2 = d.d2inv ? Math.round(d.d2/d.d2inv*100) : 0;
+    ['inv','d1','d2','def'].forEach(k => t[k]+=d[k]);
+    return `<tr>
+      <td>${d.n}</td><td class="r">${d.inv}</td>
+      <td class="r">${d.d1}</td><td class="r">${rtag(r1)}</td>
+      <td class="r">${d.d2}</td><td class="r">${d.d2inv?rtag(r2,60):'—'}</td>
+      <td class="r">${d.def}</td>
+    </tr>`;
+  }).join('') + `<tr class="tot"><td>TOTAL</td><td class="r">${t.inv}</td>
+    <td class="r">${t.d1}</td><td class="r">${rtag(Math.round(t.d1/661*100))}</td>
+    <td class="r">${t.d2}</td><td class="r">${rtag(Math.round(t.d2/139*100),60)}</td>
+    <td class="r">${t.def}</td></tr>`;
+}
+
+function lvTable() {
+  const el = $('lv-tbody'); if (!el) return;
+  el.innerHTML = D.lv.map(d => {
+    const r1 = d.d1inv ? Math.round(d.d1/d.d1inv*100) : 0;
+    const r2 = d.d2inv ? Math.round(d.d2/d.d2inv*100) : 0;
+    return `<tr>
+      <td>${d.n}</td><td class="r">${d.inv}</td>
+      <td class="r">${d.d1}</td><td class="r">${rtag(r1)}</td>
+      <td class="r">${d.d2||'—'}</td><td class="r">${d.d2inv?rtag(r2,60):'—'}</td>
+      <td class="r">${d.def||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function d2ConvTable() {
+  const el = $('d2-conv-tbody'); if (!el) return;
+  el.innerHTML = D.d2Conv.map(d => {
+    const r = d.d2inv ? Math.round(d.att/d.d2inv*100) : 0;
+    return `<tr>
+      <td>${d.n}</td><td class="r">${d.d2inv}</td><td class="r">${d.att}</td>
+      <td class="r" style="color:var(--no)">${d.ns||'—'}</td>
+      <td>${d.d2inv>0?rtag(r,60):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function locBars(elId, items, color, total) {
+  const el = $(elId); if (!el) return;
+  const mx = items[0][1];
+  el.innerHTML = items.slice(0,10).map(([name,v],i) => `<div class="br" style="animation-delay:${i*.04}s">
+    <div class="bl">${name}</div>
+    <div class="bt"><div class="bf" style="background:${color}" data-w="${(v/mx*100).toFixed(1)}"></div></div>
+    <div class="bv">${v}</div>
+    <div class="bp">${Math.round(v/total*100)}%</div>
+  </div>`).join('');
+  trig(el);
+}
+
+function locGrid(elId, items, color) {
+  const el = $(elId); if (!el) return;
+  const mx = items[0][1];
+  el.innerHTML = items.map(([name,n]) => `<div class="lgi">
+    <div class="lgnum">${n}</div>
+    <div class="lgname">${name}</div>
+    <div class="lgbar" style="background:${color};width:${Math.round(n/mx*100)}%"></div>
+  </div>`).join('');
+}
+
+function stkBar(elId, segs) {
+  const el = $(elId); if (!el) return;
+  const total = segs.reduce((s,x) => s+x.v, 0);
+  el.innerHTML = segs.map(s => `<div class="stks" style="background:${s.c};width:${(s.v/total*100).toFixed(1)}%"></div>`).join('');
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+const done = {};
+function go(id, btn) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  $(id).classList.add('on');
+  btn.classList.add('on');
+  render(id);
+}
+
+function render(id) {
+  if (done[id]) return; done[id] = true;
+
+  if (id === 'overview') {
+    stkBar('stk-d1', [{v:474,c:'var(--d1)'},{v:73,c:'var(--await)'}]);
+    stkBar('stk-d2', [{v:81,c:'var(--d2)'},{v:30,c:'var(--await)'},{v:28,c:'var(--no)'}]);
+    setTimeout(() => $('overview').querySelectorAll('.bf').forEach(b => b.style.width = b.dataset.w + '%'), 120);
+  }
+
+  if (id === 'function') {
+    simpleBars('fn-d1-vol', D.fn, 'var(--d1)', 232, 474);
+    rateBars('fn-d1-rate', D.fn, 'd1', 'd1inv', 'var(--d1)');
+    simpleBars('fn-d2-vol', D.fn, 'var(--d2)', 36, 75);
+    rateBars('fn-d2-rate', D.fn, 'd2', 'd2inv', 'var(--d2)');
+    fnTable();
+  }
+
+  if (id === 'level') {
+    rateBars('lv-d1-rate', D.lv, 'd1', 'd1inv', 'var(--d1)');
+    simpleBars('lv-d1-vol', D.lv, 'var(--d1)', 381, 474);
+    rateBars('lv-d2-rate', D.lv, 'd2', 'd2inv', 'var(--d2)');
+    simpleBars('lv-d2-vol', D.lv, 'var(--d2)', 40, 72);
+    lvTable();
+  }
+
+  if (id === 'location') {
+    locBars('loc-d1-bars', D.locD1, 'var(--d1)', 474);
+    locGrid('loc-d1-grid', D.locD1, 'var(--d1)');
+    locBars('loc-d2-bars', D.locD2, 'var(--d2)', 75);
+    setTimeout(() => $('location').querySelectorAll('.bf').forEach(b => b.style.width = b.dataset.w + '%'), 80);
+  }
+
+  if (id === 'day2') {
+    simpleBars('d2deep-lv', [{n:'Manager',v:40},{n:'Senior Manager',v:21},{n:'Director',v:9},{n:'Senior Director',v:1},{n:'Unknown Level',v:1}], 'var(--d2)', 40, 72);
+    simpleBars('d2deep-fn', [{n:'Products & Technology',v:36},{n:'Games',v:11},{n:'Talent',v:7},{n:'Finance & Operations',v:7},{n:'Marketing',v:7},{n:'Content',v:4},{n:'Global Comms',v:2},{n:'Ads',v:1}], 'var(--d2)', 36, 75);
+    d2ConvTable();
+  }
+
+  if (id === 'nonatt') {
+    simpleBars('na-d1-func', D.naD1Func, 'var(--await)', 37);
+    simpleBars('na-d1-def', D.naD1Def, 'var(--red)', 19);
+    simpleBars('na-d2-func', D.naD2Func, 'var(--await)', 10);
+    setTimeout(() => $('nonatt').querySelectorAll('.bf').forEach(b => b.style.width = b.dataset.w + '%'), 80);
+  }
+
+  if (id === 'q2') {
+    simpleBars('q2-d1-fn', D.q2D1Fn, 'var(--d1)', 19, 46);
+    simpleBars('q2-d1-lv', D.q2D1Lv, 'var(--d1)', 29, 46);
+    simpleBars('q2-d2-fn', D.q2D2Fn, 'var(--d2)', 11, 19);
+    simpleBars('q2-d2-lv', D.q2D2Lv, 'var(--d2)', 9, 19);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => render('overview'));
+</script>
+</body>
+</html>
