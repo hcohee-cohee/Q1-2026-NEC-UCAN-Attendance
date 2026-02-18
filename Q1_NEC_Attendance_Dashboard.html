@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q1 2026 NEC — Attendance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E50914; --black: #080808; --dark: #0f0f0f; --card: #161616; --card2: #1d1d1d;
+  --border: #252525; --muted: #666; --dim: #404040; --text: #dedede;
+  --green: #22c55e; --amber: #f59e0b; --blue: #3b82f6; --purple: #a855f7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.55;min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--dark);border-bottom:3px solid var(--red);padding:40px 56px 30px;}
+.header-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:32px;flex-wrap:wrap;}
+.eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--red);font-weight:600;margin-bottom:10px;}
+.h-title{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:0.92;color:#fff;letter-spacing:1px;}
+.h-title em{color:var(--red);font-style:normal;}
+.h-sub{color:var(--muted);font-size:12px;margin-top:10px;font-weight:300;}
+.hero-nums{display:flex;gap:4px;align-items:flex-start;flex-wrap:wrap;}
+.hn{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:14px 20px;text-align:center;min-width:100px;}
+.hn-val{font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:#fff;}
+.hn-val.r{color:var(--red);} .hn-val.g{color:var(--green);} .hn-val.a{color:var(--amber);} .hn-val.b{color:var(--blue);}
+.hn-lbl{font-size:10px;color:var(--muted);margin-top:3px;}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;}
+.pill{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:11px;display:flex;align-items:center;gap:7px;}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pnum{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#fff;line-height:1;}
+.plbl{color:var(--muted);}
+
+/* NAV */
+.nav{background:var(--dark);border-bottom:1px solid var(--border);padding:0 56px;display:flex;position:sticky;top:0;z-index:100;overflow-x:auto;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:13px 20px;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s;}
+.nb:hover{color:var(--text);}
+.nb.on{color:var(--red);border-bottom-color:var(--red);}
+
+/* SECTIONS */
+.sec{display:none;padding:44px 56px 56px;}
+.sec.on{display:block;animation:fadein .3s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* LAYOUT */
+.stitle{font-family:'Bebas Neue',sans-serif;font-size:30px;color:#fff;letter-spacing:1px;margin-bottom:26px;display:flex;align-items:center;gap:14px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:960px){.g2,.g3,.g4{grid-template-columns:1fr;}}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.ch{padding:14px 20px;background:var(--card2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.ct{font-family:'Bebas Neue',sans-serif;font-size:17px;color:#fff;letter-spacing:.5px;}
+.csub{font-size:10px;color:var(--muted);margin-top:2px;}
+.cv{font-family:'Bebas Neue',sans-serif;font-size:26px;}
+.cb{padding:18px 20px;}
+
+/* BARS */
+.br{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.br:last-child{margin-bottom:0;}
+.bl{font-size:12px;color:var(--muted);min-width:155px;max-width:155px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bt{flex:1;height:7px;background:var(--border);border-radius:3px;overflow:hidden;}
+.bf{height:100%;border-radius:3px;width:0;transition:width 1s cubic-bezier(.25,.46,.45,.94);}
+.bv{font-size:12px;font-weight:600;color:var(--text);min-width:34px;text-align:right;}
+.bp{font-size:10px;color:var(--muted);min-width:30px;text-align:right;}
+
+/* DONUT */
+.dw{display:flex;align-items:center;gap:24px;padding:20px;}
+.dleg{flex:1;display:flex;flex-direction:column;gap:9px;}
+.li{display:flex;align-items:center;gap:8px;font-size:12px;}
+.ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+.ll{flex:1;color:var(--muted);}
+.lv{font-weight:600;color:var(--text);}
+.lp{font-size:10px;color:var(--dim);margin-left:3px;}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--card2);color:var(--muted);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.tbl th.r{text-align:right;}
+.tbl td{padding:10px 14px;border-bottom:1px solid #1c1c1c;color:var(--text);vertical-align:middle;}
+.tbl td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.015);}
+.tbl tr.tot td{background:var(--card2);font-weight:600;}
+
+/* TAG */
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:3px;}
+.tg{background:rgba(34,197,94,.15);color:var(--green);}
+.ta{background:rgba(245,158,11,.15);color:var(--amber);}
+.tr{background:rgba(229,9,20,.15);color:var(--red);}
+.tb{background:rgba(59,130,246,.15);color:var(--blue);}
+
+/* CALLOUT */
+.co{border-radius:10px;padding:18px 20px;margin-bottom:18px;border:1px solid;}
+.co:last-child{margin-bottom:0;}
+.co.r{background:rgba(229,9,20,.07);border-color:rgba(229,9,20,.22);}
+.co.g{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.22);}
+.co.a{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.22);}
+.co.b{background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.22);}
+.cotag{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;margin-bottom:5px;}
+.co.r .cotag{color:var(--red);} .co.g .cotag{color:var(--green);} .co.a .cotag{color:var(--amber);} .co.b .cotag{color:var(--blue);}
+.cotitle{font-weight:600;color:#fff;font-size:14px;margin-bottom:5px;}
+.cotext{font-size:12px;color:var(--muted);line-height:1.7;}
+
+/* BIG STAT */
+.bstat{padding:24px 20px;text-align:center;}
+.bnum{font-family:'Bebas Neue',sans-serif;font-size:60px;line-height:1;}
+.blbl{font-size:12px;color:var(--muted);margin-top:5px;}
+
+/* FUNNEL */
+.fstep{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
+.flab{font-size:12px;color:var(--muted);min-width:130px;text-align:right;}
+.fbar-w{flex:1;}
+.fbar{height:26px;border-radius:4px;width:0;transition:width 1s cubic-bezier(.25,.46,.45,.94);display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:600;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;min-width:4px;}
+.fval{font-size:13px;font-weight:600;color:var(--text);min-width:36px;text-align:right;}
+
+/* QUOTE */
+.qt{background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 7px 7px 0;padding:11px 15px;margin-bottom:7px;font-size:12px;color:var(--text);line-height:1.65;}
+.qt.a{border-left-color:var(--amber);}
+.qt.g{border-left-color:var(--green);}
+
+/* LOC GRID */
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px;padding:18px 20px;}
+.li2{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:11px 14px;}
+.linum{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;color:#fff;}
+.liname{font-size:11px;color:var(--muted);margin-top:2px;}
+.libar{height:2px;background:var(--red);border-radius:1px;margin-top:6px;}
+
+/* inline bar */
+.ipct{display:inline-block;width:55px;height:5px;background:var(--border);border-radius:2px;vertical-align:middle;margin-left:7px;overflow:hidden;}
+.ifill{height:100%;border-radius:2px;}
+.divlbl{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:20px 0 12px;}
+.divlbl:first-child{margin-top:0;}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);padding:18px 56px;display:flex;justify-content:space-between;color:var(--dim);font-size:11px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="eyebrow">Netflix · UCAN · Q1 2026</div>
+      <div class="h-title">NEC<br><em>Attendance</em><br>Report</div>
+      <div class="h-sub">New Employee College · Feb 4–5, 2026 · 721 invited · Registration system data · Names excluded</div>
+    </div>
+    <div class="hero-nums">
+      <div class="hn"><div class="hn-val">721</div><div class="hn-lbl">Total Invited</div></div>
+      <div class="hn"><div class="hn-val g">496</div><div class="hn-lbl">Attended</div></div>
+      <div class="hn"><div class="hn-val a">68.8%</div><div class="hn-lbl">Attend Rate</div></div>
+      <div class="hn"><div class="hn-val">465</div><div class="hn-lbl">Day 1</div></div>
+      <div class="hn"><div class="hn-val b">75</div><div class="hn-lbl">Day 2</div></div>
+      <div class="hn"><div class="hn-val r">55</div><div class="hn-lbl">Deferred Q2</div></div>
+    </div>
+  </div>
+  <div class="pills">
+    <div class="pill"><div class="pdot" style="background:var(--green)"></div><span class="pnum">421</span><span class="plbl">Day 1 Only</span></div>
+    <div class="pill"><div class="pdot" style="background:var(--blue)"></div><span class="pnum">44</span><span class="plbl">Day 1 &amp; 2</span></div>
+    <div class="pill"><div class="pdot" style="background:var(--amber)"></div><span class="pnum">31</span><span class="plbl">Day 2 Only</span></div>
+    <div class="pill"><div class="pdot" style="background:var(--red)"></div><span class="pnum">55</span><span class="plbl">Deferred Q2</span></div>
+    <div class="pill"><div class="pdot" style="background:#444"></div><span class="pnum">53</span><span class="plbl">Declined</span></div>
+    <div class="pill"><div class="pdot" style="background:#444"></div><span class="pnum">36</span><span class="plbl">Cancelled</span></div>
+    <div class="pill"><div class="pdot" style="background:#333"></div><span class="pnum">69</span><span class="plbl">No Response</span></div>
+    <div class="pill"><div class="pdot" style="background:#2a2a2a"></div><span class="pnum">11</span><span class="plbl">No Show</span></div>
+    <div class="pill"><div class="pdot" style="background:#1a1a1a"></div><span class="pnum">1</span><span class="plbl">Term</span></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nb on" onclick="showSec('overview',this)">Overview</button>
+  <button class="nb" onclick="showSec('funnel',this)">Invitation Funnel</button>
+  <button class="nb" onclick="showSec('function',this)">By Function</button>
+  <button class="nb" onclick="showSec('level',this)">By Job Level</button>
+  <button class="nb" onclick="showSec('location',this)">By Location</button>
+  <button class="nb" onclick="showSec('day2',this)">Day 2 Deep Dive</button>
+  <button class="nb" onclick="showSec('nonatt',this)">Non-Attendance</button>
+  <button class="nb" onclick="showSec('q2pipe',this)">Q2 Pipeline</button>
+</nav>
+
+<!-- OVERVIEW -->
+<section id="overview" class="sec on">
+  <div class="stitle">Program Overview</div>
+  <div class="g4" style="margin-bottom:22px">
+    <div class="co g" style="margin-bottom:0"><div class="cotag">✓ Headline</div><div class="cotitle">496 of 721 attended — 68.8%</div><div class="cotext">Above typical new-hire event benchmarks. Of those who responded, 84.7% ultimately attended.</div></div>
+    <div class="co a" style="margin-bottom:0"><div class="cotag">⚑ Watch</div><div class="cotitle">55 already deferred to Q2</div><div class="cotext">Before any new Q2 hire volume, Q2 2026 already has 55 confirmed seats needed — a pre-committed floor of demand.</div></div>
+    <div class="co r" style="margin-bottom:0"><div class="cotag">⚠ Action</div><div class="cotitle">69 no-responses — largest recoverable gap</div><div class="cotext">9.6% of the invite list never responded. Earlier outreach and manager nudges could recover most of this audience.</div></div>
+    <div class="co b" style="margin-bottom:0"><div class="cotag">◎ Context</div><div class="cotitle">11 no-shows held seats for no benefit</div><div class="cotext">1.5% of invitees confirmed then didn't appear. Each seat could have served someone on the waitlist instead.</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><div><div class="ct">Invitation Outcomes</div><div class="csub">All 721 invitees</div></div><div class="cv g">68.8%</div></div>
+      <div class="dw">
+        <svg width="134" height="134" viewBox="0 0 134 134" style="flex-shrink:0">
+          <circle cx="67" cy="67" r="52" fill="none" stroke="#222" stroke-width="16"/>
+          <circle id="ds0" cx="67" cy="67" r="52" fill="none" stroke-width="16" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 67 67)"/>
+          <circle id="ds1" cx="67" cy="67" r="52" fill="none" stroke-width="16" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 67 67)"/>
+          <circle id="ds2" cx="67" cy="67" r="52" fill="none" stroke-width="16" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 67 67)"/>
+          <circle id="ds3" cx="67" cy="67" r="52" fill="none" stroke-width="16" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 67 67)"/>
+          <circle id="ds4" cx="67" cy="67" r="52" fill="none" stroke-width="16" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 67 67)"/>
+          <circle id="ds5" cx="67" cy="67" r="52" fill="none" stroke-width="16" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 67 67)"/>
+          <text x="67" y="61" text-anchor="middle" fill="#fff" font-family="'Bebas Neue',sans-serif" font-size="28">496</text>
+          <text x="67" y="76" text-anchor="middle" fill="#555" font-family="'DM Sans',sans-serif" font-size="9">attended</text>
+        </svg>
+        <div class="dleg">
+          <div class="li"><div class="ld" style="background:#22c55e"></div><span class="ll">Day 1 Only</span><span class="lv">421</span><span class="lp">58.4%</span></div>
+          <div class="li"><div class="ld" style="background:#3b82f6"></div><span class="ll">Day 1 &amp; 2</span><span class="lv">44</span><span class="lp">6.1%</span></div>
+          <div class="li"><div class="ld" style="background:#f59e0b"></div><span class="ll">Day 2 Only</span><span class="lv">31</span><span class="lp">4.3%</span></div>
+          <div class="li"><div class="ld" style="background:#E50914"></div><span class="ll">Deferred Q2</span><span class="lv">55</span><span class="lp">7.6%</span></div>
+          <div class="li"><div class="ld" style="background:#555"></div><span class="ll">Declined</span><span class="lv">53</span><span class="lp">7.3%</span></div>
+          <div class="li"><div class="ld" style="background:#2a2a2a"></div><span class="ll">Cancelled / No-show / No-resp</span><span class="lv">116</span><span class="lp">16.1%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ct">Geography</div><div class="csub">Among 496 attendees</div></div></div>
+      <div class="cb">
+        <div class="divlbl">Office vs. Remote (Attended)</div>
+        <div class="br"><div class="bl">Office-Based</div><div class="bt"><div class="bf" style="background:var(--green)" data-w="62.3"></div></div><div class="bv">309</div><div class="bp">62%</div></div>
+        <div class="br"><div class="bl">Remote</div><div class="bt"><div class="bf" style="background:var(--amber)" data-w="37.7"></div></div><div class="bv">187</div><div class="bp">38%</div></div>
+        <div class="divlbl">Office vs. Remote (Invited)</div>
+        <div class="br"><div class="bl">Office-Based</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="56.7"></div></div><div class="bv">409</div><div class="bp">57%</div></div>
+        <div class="br"><div class="bl">Remote</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="43.3"></div></div><div class="bv">312</div><div class="bp">43%</div></div>
+        <div class="divlbl">Country (Attended)</div>
+        <div class="br"><div class="bl">United States</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="95.2"></div></div><div class="bv">472</div><div class="bp">95%</div></div>
+        <div class="br"><div class="bl">Canada</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="4.4"></div></div><div class="bv">22</div><div class="bp">4%</div></div>
+        <div class="br"><div class="bl">Poland</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="0.4"></div></div><div class="bv">2</div><div class="bp">&lt;1%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div><div class="ct">Conversion by Invite Type</div><div class="csub">How each invite track performed</div></div></div>
+    <div class="cb">
+      <div class="g3" style="margin-bottom:0">
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Day 1 Only Invites</div><div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--green);line-height:1">72.4%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">420 of 580 invited</div><div class="bt" style="margin-top:10px;height:9px"><div class="bf" style="background:var(--green)" data-w="72.4"></div></div></div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Day 1 &amp; 2 Invites</div><div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--amber);line-height:1">54.3%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">44 of 81 invited</div><div class="bt" style="margin-top:10px;height:9px"><div class="bf" style="background:var(--amber)" data-w="54.3"></div></div></div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Day 2 Only Invites</div><div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--blue);line-height:1">53.4%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">31 of 58 invited</div><div class="bt" style="margin-top:10px;height:9px"><div class="bf" style="background:var(--blue)" data-w="53.4"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNNEL -->
+<section id="funnel" class="sec">
+  <div class="stitle">Invitation Funnel</div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div><div class="ct">Full Funnel — Invited to Attended</div><div class="csub">721 → 496</div></div></div><div class="cb" id="f-main"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Non-Attendance Breakdown</div><div class="csub">225 did not attend</div></div></div><div class="cb" id="f-noatt"></div></div>
+  </div>
+  <div class="g2">
+    <div class="co g" style="margin-bottom:0"><div class="cotag">✓ Positive</div><div class="cotitle">84.7% of responders followed through</div><div class="cotext">652 responded (721 − 69 no-response). Of those, 496 attended — commitment-to-attendance dropout is very low. The main friction is at the invitation-response stage, not after people commit.</div></div>
+    <div class="co r" style="margin-bottom:0"><div class="cotag">⚠ Friction Point</div><div class="cotitle">Day 1+2 invitees converted 18 points lower than Day 1 Only</div><div class="cotext">54.3% of Day 1+2 invitees attended vs. 72.4% for Day 1 Only. Leadership schedules and competing priorities are a significant barrier for the people-leader track. Targeted pre-event manager enablement could close this gap in Q2.</div></div>
+  </div>
+</section>
+
+<!-- BY FUNCTION -->
+<section id="function" class="sec">
+  <div class="stitle">Attendance by Function</div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div><div class="ct">Attendance Rate by Function</div><div class="csub">Attended ÷ Invited</div></div></div><div class="cb" id="func-rate"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Headcount Attended</div><div class="csub">Absolute volume</div></div></div><div class="cb" id="func-vol"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="ch"><div><div class="ct">Full Function Breakdown</div></div></div>
+    <table class="tbl"><thead><tr><th>Function</th><th class="r">Invited</th><th class="r">Attended</th><th>Rate</th><th class="r">Deferred Q2</th><th class="r">Declined</th><th class="r">Cancelled</th><th class="r">No Response</th><th class="r">No Show</th></tr></thead><tbody id="func-tbody"></tbody></table>
+  </div>
+  <div class="g2">
+    <div class="co g" style="margin-bottom:0"><div class="cotag">★ Best Rate</div><div class="cotitle">Legal (83%) and Finance &amp; Ops (83%) led all functions</div><div class="cotext">Legal had 10 of 12 attend; Finance &amp; Operations had 48 of 58 (83%). Talent also performed well at 81% (34/42). These smaller functions show the strongest attendance discipline relative to their invite list.</div></div>
+    <div class="co r" style="margin-bottom:0"><div class="cotag">⚑ Lagging</div><div class="cotitle">Ads (62%), Global Comms (56%), and Global Affairs (33%) trailed</div><div class="cotext">Ads had 6 cancellations — the highest cancel rate of any function by proportion (15% of their invite list). P&amp;T's large absolute non-attendance (130 did not attend) is a function of its size, not a poor rate (66%). Global Affairs at 1 of 3 is too small a sample to be actionable.</div></div>
+  </div>
+</section>
+
+<!-- BY LEVEL -->
+<section id="level" class="sec">
+  <div class="stitle">Attendance by Job Level</div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div><div class="ct">Attendance Rate by Level</div><div class="csub">Attended ÷ Invited</div></div></div><div class="cb" id="lvl-rate"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Headcount by Level</div><div class="csub">Attended volume</div></div></div><div class="cb" id="lvl-vol"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="ch"><div><div class="ct">Full Level Breakdown</div></div></div>
+    <table class="tbl"><thead><tr><th>Job Level</th><th class="r">Invited</th><th class="r">Attended</th><th>Rate</th><th class="r">Deferred Q2</th><th class="r">Declined</th><th class="r">No Response</th><th class="r">No Show</th></tr></thead><tbody id="lvl-tbody"></tbody></table>
+  </div>
+  <div class="g2">
+    <div class="co r" style="margin-bottom:0"><div class="cotag">⚠ Senior Dropout</div><div class="cotitle">VP (0%) and Officer (0%) — zero attendance at the top two levels</div><div class="cotext">All 4 VPs and the 1 Officer invited did not attend. Senior Director rate was only 29% (2 of 7). Director reached 55% (11 of 20). New employees don't see senior leadership modelling NEC participation. Consider an executive sponsor or attendance requirement at VP+.</div></div>
+    <div class="co g" style="margin-bottom:0"><div class="cotag">✓ IC Foundation</div><div class="cotitle">ICs: 383 attended — 77% of total attendance, 72% conversion</div><div class="cotext">ICs are the backbone of every cohort. Manager conversion was 66% (69 of 104). Senior Manager converted at only 62% (30 of 48) — notable given Day 2 is designed specifically for this audience. Closing the Sr. Manager gap is the highest-leverage level-specific action for Q2.</div></div>
+  </div>
+</section>
+
+<!-- BY LOCATION -->
+<section id="location" class="sec">
+  <div class="stitle">Attendance by Location</div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div><div class="ct">Top Locations — Attended</div><div class="csub">n=496</div></div></div><div class="cb" id="loc-att"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Top Locations — Invited</div><div class="csub">n=721</div></div></div><div class="cb" id="loc-inv"></div></div>
+  </div>
+  <div class="card"><div class="ch"><div><div class="ct">All Locations — Attended</div></div></div><div class="lgrid" id="loc-grid"></div></div>
+  <div class="co a" style="margin-top:18px"><div class="cotag">◎ Concentration</div><div class="cotitle">LA (158) + Los Gatos (101) = 52% of all attendance</div><div class="cotext">These two office locations alone provided 259 of 496 attendees. Washington Remote (45) and California Remote (48) added 93 more — the top 4 location clusters accounted for 72% of total attendance. Remote worker attendance was 38%, slightly below their 43% share of invites, suggesting modest but manageable friction for distributed employees.</div></div>
+</section>
+
+<!-- DAY 2 -->
+<section id="day2" class="sec">
+  <div class="stitle">Day 2 Deep Dive — People Leaders</div>
+  <div class="g4" style="margin-bottom:22px">
+    <div class="card"><div class="bstat"><div class="bnum" style="color:var(--amber)">75</div><div class="blbl">Total Day 2 Attendees</div></div></div>
+    <div class="card"><div class="bstat"><div class="bnum">44</div><div class="blbl">Attended Both Days</div></div></div>
+    <div class="card"><div class="bstat"><div class="bnum" style="color:var(--blue)">31</div><div class="blbl">Day 2 Only</div></div></div>
+    <div class="card"><div class="bstat"><div class="bnum" style="color:var(--red)">6</div><div class="blbl">Invited D2 — Didn't Attend</div></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div><div class="ct">Day 2 by Job Level</div><div class="csub">n=75</div></div></div><div class="cb" id="d2-lvl"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Day 2 by Function</div><div class="csub">n=75</div></div></div><div class="cb" id="d2-func"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="ch"><div><div class="ct">Day 2 Invite vs. Attend — by Level</div><div class="csub">Conversion within the leaders track</div></div></div>
+    <table class="tbl"><thead><tr><th>Level</th><th class="r">Invited (D2)</th><th class="r">Attended</th><th>Rate</th></tr></thead><tbody id="d2-conv-tbody"></tbody></table>
+  </div>
+  <div class="g2">
+    <div class="co a" style="margin-bottom:0"><div class="cotag">◎ Level Mix</div><div class="cotitle">Managers dominated Day 2 — 53% of the room</div><div class="cotext">40 Managers, 21 Senior Managers, 9 Directors, 1 Senior Director attended. Director+ made up only 13% of Day 2 attendance. The 3 ICs who attended Day 2 appear to be an invite-routing issue — recommend auditing invite list logic for the leaders track.</div></div>
+    <div class="co b" style="margin-bottom:0"><div class="cotag">◎ Function Mix</div><div class="cotitle">P&amp;T sent 36 Day 2 attendees (48% of the room)</div><div class="cotext">Games was second at 11, then Talent, Finance &amp; Ops, and Marketing at 7 each. Content (4), Global Comms (2), and Ads (1) were underrepresented relative to their total invite share — investigate whether people-leader pipelines are thin in these functions or if the Day 2 invite list needs expanding.</div></div>
+  </div>
+</section>
+
+<!-- NON-ATTENDANCE -->
+<section id="nonatt" class="sec">
+  <div class="stitle">Non-Attendance Analysis</div>
+  <div class="g3">
+    <div class="card"><div class="ch"><div><div class="ct">Declined — by Function</div><div class="csub">53 declined</div></div></div><div class="cb" id="dec-func"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">No Response — by Function</div><div class="csub">69 unreached</div></div></div><div class="cb" id="noresp-func"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Cancelled — by Function</div><div class="csub">36 cancelled</div></div></div><div class="cb" id="can-func"></div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><div><div class="ct">Decline Reasons</div><div class="csub">Verbatim — names removed</div></div></div>
+      <div class="cb">
+        <div class="divlbl">Reason Distribution (53 declined)</div>
+        <div class="br"><div class="bl">Work Conflict</div><div class="bt"><div class="bf" style="background:var(--red)" data-w="83"></div></div><div class="bv">25</div><div class="bp">47%</div></div>
+        <div class="br"><div class="bl">Personal/Vacation</div><div class="bt"><div class="bf" style="background:var(--amber)" data-w="38"></div></div><div class="bv">10</div><div class="bp">19%</div></div>
+        <div class="br"><div class="bl">Team Onsite Conflict</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="15"></div></div><div class="bv">4</div><div class="bp">8%</div></div>
+        <div class="br"><div class="bl">Deferral Request</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="11"></div></div><div class="bv">3</div><div class="bp">6%</div></div>
+        <div class="br"><div class="bl">Already Attended NEC</div><div class="bt"><div class="bf" style="background:var(--blue)" data-w="11"></div></div><div class="bv">3</div><div class="bp">6%</div></div>
+        <div class="br"><div class="bl">Family/Medical/Leave</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="11"></div></div><div class="bv">3</div><div class="bp">6%</div></div>
+        <div class="br"><div class="bl">Not Applicable / Other</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="11"></div></div><div class="bv">5</div><div class="bp">9%</div></div>
+        <div class="divlbl">Notable Verbatim</div>
+        <div class="qt a">"I've worked here for four years" — tenure check missed on invite list</div>
+        <div class="qt a">"I went to NEC in October" — duplicate invite; prior attendee</div>
+        <div class="qt a">"Already attended last quarter" — duplicate invite</div>
+        <div class="qt a">"Conflicts with team onsite in Los Gatos; will attend next NEC" — scheduling, not disengagement</div>
+        <div class="qt a">"Not needed at this time." — unclear eligibility; may need HRBP alignment</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ct">Cancel Reasons</div><div class="csub">Verbatim — names removed</div></div></div>
+      <div class="cb">
+        <div class="divlbl">Reason Distribution (36 cancelled — 9 specified reason)</div>
+        <div class="br"><div class="bl">Work Conflict</div><div class="bt"><div class="bf" style="background:var(--red)" data-w="100"></div></div><div class="bv">9</div><div class="bp">25%</div></div>
+        <div class="br"><div class="bl">Illness (self)</div><div class="bt"><div class="bf" style="background:var(--amber)" data-w="22"></div></div><div class="bv">2</div><div class="bp">6%</div></div>
+        <div class="br"><div class="bl">Family Emergency</div><div class="bt"><div class="bf" style="background:var(--amber)" data-w="22"></div></div><div class="bv">2</div><div class="bp">6%</div></div>
+        <div class="br"><div class="bl">No Reason Given</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="63"></div></div><div class="bv">23</div><div class="bp">64%</div></div>
+        <div class="divlbl">Notable Verbatim</div>
+        <div class="qt">"I made the trip to LA but caught food poisoning :("</div>
+        <div class="qt">"Got selected for jury duty today and now unable to attend"</div>
+        <div class="qt">"My 9 month old daughter is sick and I need to tend for it"</div>
+        <div class="qt">"When checked in with my HR manager, she suggested I did not need to attend"</div>
+        <div class="qt">"I attended NEC last year — scheduling conflict this year, plan to attend Q2"</div>
+        <div class="co r" style="margin-top:14px;margin-bottom:0"><div class="cotag">⚠ Invite List Hygiene</div><div class="cotitle">Multiple tenured / prior-attendee invites confirm a data quality gap</div><div class="cotext">At least 3 confirmed comments indicate individuals with 4+ years tenure or prior NEC completion were on the invite list. An automated Workday tenure + NEC completion filter pre-send would eliminate these and preserve waitlist capacity.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:4px">
+    <div class="ch"><div><div class="ct">No-Shows — Detail</div><div class="csub">11 registered, did not attend, did not cancel</div></div></div>
+    <div class="cb">
+      <div class="g2" style="margin-bottom:0">
+        <div>
+          <div class="divlbl">By Function</div>
+          <div class="br"><div class="bl">P&amp;T</div><div class="bt"><div class="bf" style="background:var(--red)" data-w="100"></div></div><div class="bv">6</div><div class="bp">55%</div></div>
+          <div class="br"><div class="bl">Ads</div><div class="bt"><div class="bf" style="background:var(--red)" data-w="33"></div></div><div class="bv">2</div><div class="bp">18%</div></div>
+          <div class="br"><div class="bl">Games</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="17"></div></div><div class="bv">1</div><div class="bp">9%</div></div>
+          <div class="br"><div class="bl">Global Comms</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="17"></div></div><div class="bv">1</div><div class="bp">9%</div></div>
+          <div class="br"><div class="bl">Marketing</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="17"></div></div><div class="bv">1</div><div class="bp">9%</div></div>
+        </div>
+        <div>
+          <div class="divlbl">By Level</div>
+          <div class="br"><div class="bl">Manager</div><div class="bt"><div class="bf" style="background:var(--amber)" data-w="100"></div></div><div class="bv">5</div><div class="bp">45%</div></div>
+          <div class="br"><div class="bl">Individual Contributor</div><div class="bt"><div class="bf" style="background:var(--amber)" data-w="100"></div></div><div class="bv">5</div><div class="bp">45%</div></div>
+          <div class="br"><div class="bl">Senior Director</div><div class="bt"><div class="bf" style="background:var(--dim)" data-w="20"></div></div><div class="bv">1</div><div class="bp">9%</div></div>
+          <div class="co r" style="margin-top:14px;margin-bottom:0"><div class="cotag">⚠ Impact</div><div class="cotitle">11 no-shows = 11 waitlist seats not reclaimed</div><div class="cotext">Given Q1 had a 55-person waitlist, a same-day cancellation policy with automatic waitlist promotion would recover these seats in future cohorts.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Q2 PIPELINE -->
+<section id="q2pipe" class="sec">
+  <div class="stitle">Q2 2026 Pipeline</div>
+  <div class="co r"><div class="cotag">◎ Planning Context</div><div class="cotitle">Q2 begins with 55 confirmed deferred seats before any new-hire volume</div><div class="cotext">These 55 individuals have been communicated a Q2 date. They represent non-negotiable capacity demand that must be factored into Q2 event sizing before new-hire pipeline is even considered. Combined with typical Q2 new-hire projections of 400–550, the Double-Header cohort model is load-bearing infrastructure, not a nice-to-have.</div></div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div><div class="ct">Deferred Q2 — by Function</div><div class="csub">55 total</div></div></div><div class="cb" id="q2-func"></div></div>
+    <div class="card"><div class="ch"><div><div class="ct">Deferred Q2 — by Job Level</div><div class="csub">55 total</div></div></div><div class="cb" id="q2-lvl"></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div><div class="ct">Q2 Capacity Pressure — Scenario Model</div><div class="csub">Demand projection before venue is confirmed</div></div></div>
+    <div class="cb">
+      <table class="tbl">
+        <thead><tr><th>Demand Source</th><th class="r">Low</th><th class="r">Mid</th><th class="r">High</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Q1 Deferred (confirmed)</td><td class="r">55</td><td class="r">55</td><td class="r">55</td><td style="color:var(--muted);font-size:11px">Already committed — non-negotiable floor</td></tr>
+          <tr><td>Q1 No-Responses (re-invite potential)</td><td class="r">0</td><td class="r">35</td><td class="r">69</td><td style="color:var(--muted);font-size:11px">Depends on outreach improvement</td></tr>
+          <tr><td>Q2 New Hire Volume</td><td class="r">350</td><td class="r">450</td><td class="r">550</td><td style="color:var(--muted);font-size:11px">Based on prior quarterly ranges (400–550)</td></tr>
+          <tr class="tot"><td>Total Q2 Demand</td><td class="r" style="color:var(--green)">405</td><td class="r" style="color:var(--amber)">540</td><td class="r" style="color:var(--red)">674</td><td style="color:var(--muted);font-size:11px">Venue capacity ~550/day</td></tr>
+        </tbody>
+      </table>
+      <div class="co a" style="margin-top:16px;margin-bottom:0"><div class="cotag">◎ Implication</div><div class="cotitle">Mid and High scenarios exceed single-event capacity</div><div class="cotext">At mid (540), a single Q2 event is at the edge of venue capacity with no buffer for late registrations. At high (674), it's structurally impossible without a split event. The Double-Header model (two Day 1 events per quarter) is the recommended design. Q2 planning should assume mid-high and build in a second Day 1 cohort from the start.</div></div>
+    </div>
+  </div>
+  <div class="g2" style="margin-top:0">
+    <div class="co b" style="margin-bottom:0"><div class="cotag">◎ Composition</div><div class="cotitle">64% of Q2 deferred are ICs (35 of 55)</div><div class="cotext">Consistent with the core NEC audience. Also 9 Managers and 5 Senior Managers are deferred — meaning Q2 Day 2 already has ~14 leader-track attendees before any new Q2 leaders are added. Factor this into Day 2 capacity planning separately.</div></div>
+    <div class="co a" style="margin-bottom:0"><div class="cotag">◎ Function Mix</div><div class="cotitle">P&amp;T accounts for 55% of Q2 deferrals (30 of 55)</div><div class="cotext">Content (6), Marketing (5), and Games (4) round out the top 4. No function should be surprised by their Q2 deferred headcount — HRBPs can set expectations with managers proactively now, before Q2 invites go out.</div></div>
+  </div>
+</section>
+
+<div class="footer">
+  <span>Q1 2026 NEC Attendance Report · UCAN Region · All names excluded · Source: Registration system</span>
+  <span>Generated February 2026 · Confidential</span>
+</div>
+
+<script>
+const D = {
+  funnel:[{l:'Total Invited',n:721,c:'#404040'},{l:'Responded',n:652,c:'#3b82f6'},{l:'Attended',n:496,c:'#22c55e'},{l:'Day 1 Attended',n:465,c:'#16a34a'},{l:'Day 2 Attended',n:75,c:'#f59e0b'}],
+  fnoatt:[{l:'Did Not Attend',n:225,c:'#E50914'},{l:'No Response',n:69,c:'#555'},{l:'Declined',n:53,c:'#7f1d1d'},{l:'Cancelled',n:36,c:'#78716c'},{l:'Deferred Q2',n:55,c:'#c2410c'},{l:'No Show',n:11,c:'#888'}],
+  func:[
+    {n:'Products & Technology',inv:378,att:248,def:30,dec:38,can:14,nor:42,ns:6},
+    {n:'Marketing',inv:68,att:52,def:5,dec:2,can:0,nor:7,ns:1},
+    {n:'Content',inv:66,att:43,def:6,dec:4,can:6,nor:7,ns:0},
+    {n:'Finance & Operations',inv:58,att:48,def:2,dec:3,can:3,nor:2,ns:0},
+    {n:'Games',inv:44,att:30,def:4,dec:1,can:2,nor:6,ns:1},
+    {n:'Talent',inv:42,att:34,def:3,dec:1,can:3,nor:1,ns:0},
+    {n:'Ads',inv:40,att:25,def:2,dec:3,can:6,nor:2,ns:2},
+    {n:'Legal',inv:12,att:10,def:1,dec:0,can:0,nor:1,ns:0},
+    {n:'Global Comms',inv:9,att:5,def:0,dec:0,can:2,nor:1,ns:1},
+    {n:'Global Affairs',inv:3,att:1,def:1,dec:1,can:0,nor:0,ns:0},
+  ],
+  level:[
+    {n:'Individual Contributor',inv:534,att:383,def:35,dec:39,nor:41,ns:5},
+    {n:'Manager',inv:104,att:69,def:9,dec:6,nor:13,ns:5},
+    {n:'Senior Manager',inv:48,att:30,def:5,dec:0,nor:10,ns:0},
+    {n:'Director',inv:20,att:11,def:4,dec:3,nor:2,ns:0},
+    {n:'Senior Director',inv:7,att:2,def:1,dec:3,nor:0,ns:1},
+    {n:'Vice President',inv:4,att:0,def:0,dec:2,nor:1,ns:0},
+    {n:'Officer',inv:1,att:0,def:0,dec:0,nor:1,ns:0},
+  ],
+  locAtt:[['Los Angeles',158],['Los Gatos',101],['California - Remote',48],['Washington - Remote',45],['New York',40],['Ontario - Remote',11],['Texas - Remote',11],['Colorado - Remote',9],['New York - Remote',9],['Quebec - Remote',6],['Florida - Remote',5],['Virginia - Remote',5],['New Jersey - Remote',5],['Oregon - Remote',4],['Pennsylvania - Remote',4],['Toronto',3],['Georgia - Remote',3],['Minnesota - Remote',2],['Massachusetts - Remote',2],['Washington DC - Remote',2]],
+  locInv:[['Los Angeles',207],['Los Gatos',135],['Washington - Remote',76],['California - Remote',73],['New York',52],['New York - Remote',25],['Texas - Remote',19],['Colorado - Remote',13],['Ontario - Remote',11],['New Jersey - Remote',10]],
+  d2lvl:[{n:'Manager',v:40},{n:'Senior Manager',v:21},{n:'Director',v:9},{n:'IC (misdirected)',v:3},{n:'Senior Director',v:1}],
+  d2func:[{n:'Products & Technology',v:36},{n:'Games',v:11},{n:'Talent',v:7},{n:'Finance & Operations',v:7},{n:'Marketing',v:7},{n:'Content',v:4},{n:'Global Comms',v:2},{n:'Ads',v:1}],
+  d2conv:[{n:'Manager',inv:45,att:40},{n:'Senior Manager',inv:27,att:21},{n:'Director',inv:10,att:9},{n:'Senior Director',inv:2,att:1},{n:'IC (routing check)',inv:3,att:3}],
+  decFunc:[{n:'P&T',v:38},{n:'Content',v:4},{n:'Finance & Ops',v:3},{n:'Ads',v:3},{n:'Marketing',v:2},{n:'Games',v:1},{n:'Talent',v:1},{n:'Global Affairs',v:1}],
+  norFunc:[{n:'P&T',v:42},{n:'Marketing',v:7},{n:'Content',v:7},{n:'Games',v:6},{n:'Finance & Ops',v:2},{n:'Ads',v:2},{n:'Legal',v:1},{n:'Global Comms',v:1},{n:'Talent',v:1}],
+  canFunc:[{n:'P&T',v:14},{n:'Ads',v:6},{n:'Content',v:6},{n:'Finance & Ops',v:3},{n:'Talent',v:3},{n:'Global Comms',v:2},{n:'Games',v:2}],
+  q2func:[{n:'Products & Technology',v:30},{n:'Content',v:6},{n:'Marketing',v:5},{n:'Games',v:4},{n:'Talent',v:3},{n:'Ads',v:2},{n:'Finance & Operations',v:2},{n:'Legal',v:1},{n:'Global Affairs',v:1}],
+  q2lvl:[{n:'Individual Contributor',v:35},{n:'Manager',v:9},{n:'Senior Manager',v:5},{n:'Director',v:4},{n:'Senior Director',v:1}],
+  donut:[{pct:58.4,c:'#22c55e'},{pct:6.1,c:'#3b82f6'},{pct:4.3,c:'#f59e0b'},{pct:7.6,c:'#E50914'},{pct:7.3,c:'#555'},{pct:16.1,c:'#2a2a2a'}],
+};
+
+function rateColor(r){return r>=75?'var(--green)':r>=62?'var(--amber)':'var(--red)';}
+function rateTag(r){const cls=r>=75?'tg':r>=62?'ta':'tr';return `<span class="tag ${cls}">${r}%</span>`;}
+function trig(el){setTimeout(()=>el.querySelectorAll('.bf').forEach(b=>b.style.width=b.dataset.w+'%'),70);}
+
+function rateBars(id,items){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=items.map((d,i)=>{const r=Math.round(d.att/d.inv*100);const c=rateColor(r);return `<div class="br" style="animation-delay:${i*.05}s"><div class="bl">${d.n}</div><div class="bt"><div class="bf" style="background:${c}" data-w="${r}"></div></div><div class="bv" style="color:${c}">${r}%</div></div>`;}).join('');trig(el);
+}
+function volBars(id,items,base){
+  const el=document.getElementById(id);if(!el)return;
+  const mx=Math.max(...items.map(d=>d.att));
+  el.innerHTML=items.map((d,i)=>{const w=(d.att/mx*100).toFixed(1);const c=d.att===0?'#2a2a2a':'var(--green)';return `<div class="br" style="animation-delay:${i*.05}s"><div class="bl">${d.n}</div><div class="bt"><div class="bf" style="background:${c}" data-w="${w}"></div></div><div class="bv">${d.att}</div><div class="bp">${(d.att/base*100).toFixed(0)}%</div></div>`;}).join('');trig(el);
+}
+function simpleBars(id,items,color,mx,base){
+  const el=document.getElementById(id);if(!el)return;
+  const m=mx||Math.max(...items.map(d=>d.v||d.n||0));
+  el.innerHTML=items.map((d,i)=>{const v=d.v!==undefined?d.v:d.n;const w=(v/m*100).toFixed(1);const bp=base?` <div class="bp">${(v/base*100).toFixed(0)}%</div>`:'';return `<div class="br" style="animation-delay:${i*.05}s"><div class="bl">${d.n}</div><div class="bt"><div class="bf" style="background:${color}" data-w="${w}"></div></div><div class="bv">${v}</div>${bp}</div>`;}).join('');trig(el);
+}
+function locBars(id,items,color,base){
+  const el=document.getElementById(id);if(!el)return;
+  const mx=items[0][1];
+  el.innerHTML=items.slice(0,10).map(([name,val],i)=>{const w=(val/mx*100).toFixed(1);return `<div class="br" style="animation-delay:${i*.04}s"><div class="bl">${name}</div><div class="bt"><div class="bf" style="background:${color}" data-w="${w}"></div></div><div class="bv">${val}</div><div class="bp">${(val/base*100).toFixed(0)}%</div></div>`;}).join('');trig(el);
+}
+function locGrid(items){
+  const el=document.getElementById('loc-grid');if(!el)return;
+  const mx=items[0][1];
+  el.innerHTML=items.map(([name,n])=>`<div class="li2"><div class="linum">${n}</div><div class="liname">${name}</div><div class="libar" style="width:${Math.round(n/mx*100)}%"></div></div>`).join('');
+}
+function funcTable(){
+  const el=document.getElementById('func-tbody');if(!el)return;
+  let tot={inv:0,att:0,def:0,dec:0,can:0,nor:0,ns:0};
+  el.innerHTML=D.func.map(d=>{const r=Math.round(d.att/d.inv*100);['inv','att','def','dec','can','nor','ns'].forEach(k=>tot[k]+=(d[k]||0));return `<tr><td>${d.n}</td><td class="r">${d.inv}</td><td class="r">${d.att}</td><td>${rateTag(r)}<span class="ipct"><span class="ifill" style="background:${rateColor(r)};width:${r}%"></span></span></td><td class="r">${d.def||'—'}</td><td class="r">${d.dec||'—'}</td><td class="r">${d.can||'—'}</td><td class="r">${d.nor||'—'}</td><td class="r">${d.ns||'—'}</td></tr>`;}).join('')+`<tr class="tot"><td>TOTAL</td><td class="r">${tot.inv}</td><td class="r">${tot.att}</td><td>${rateTag(Math.round(tot.att/tot.inv*100))}</td><td class="r">${tot.def}</td><td class="r">${tot.dec}</td><td class="r">${tot.can}</td><td class="r">${tot.nor}</td><td class="r">${tot.ns}</td></tr>`;
+}
+function levelTable(){
+  const el=document.getElementById('lvl-tbody');if(!el)return;
+  el.innerHTML=D.level.map(d=>{const r=Math.round(d.att/d.inv*100);return `<tr><td>${d.n}</td><td class="r">${d.inv}</td><td class="r">${d.att}</td><td>${rateTag(r)}<span class="ipct"><span class="ifill" style="background:${rateColor(r)};width:${r}%"></span></span></td><td class="r">${d.def||'—'}</td><td class="r">${d.dec||'—'}</td><td class="r">${d.nor||'—'}</td><td class="r">${d.ns||'—'}</td></tr>`;}).join('');
+}
+function d2convTable(){
+  const el=document.getElementById('d2-conv-tbody');if(!el)return;
+  el.innerHTML=D.d2conv.map(d=>{const r=Math.round(d.att/d.inv*100);return `<tr><td>${d.n}</td><td class="r">${d.inv}</td><td class="r">${d.att}</td><td>${rateTag(r)}</td></tr>`;}).join('');
+}
+function funnel(id,items){
+  const el=document.getElementById(id);if(!el)return;
+  const mx=items[0].n;
+  el.innerHTML=items.map((d,i)=>`<div class="fstep" style="animation-delay:${i*.07}s"><div class="flab">${d.l}</div><div class="fbar-w"><div class="fbar" style="background:${d.c}" data-w="${(d.n/mx*100).toFixed(1)}">${d.n}</div></div><div class="fval">${d.n}</div></div>`).join('');
+  setTimeout(()=>el.querySelectorAll('.fbar').forEach(b=>{b.style.width=b.dataset.w+'%';b.style.transition='width 1s cubic-bezier(.25,.46,.45,.94)';}),80);
+}
+function donut(){
+  const circ=326.73;let off=0;
+  D.donut.forEach((s,i)=>{const el=document.getElementById('ds'+i);if(!el)return;const fill=s.pct/100*circ;el.style.stroke=s.c;el.setAttribute('stroke-dasharray',`${fill} ${circ-fill}`);el.setAttribute('transform',`rotate(${off*3.6-90} 67 67)`);off+=s.pct;});
+}
+
+const done={};
+function showSec(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  btn.classList.add('on');
+  render(id);
+}
+function render(id){
+  if(done[id])return;done[id]=true;
+  if(id==='overview'){donut();setTimeout(()=>document.querySelectorAll('#overview .bf').forEach(b=>b.style.width=b.dataset.w+'%'),100);}
+  if(id==='funnel'){funnel('f-main',D.funnel);funnel('f-noatt',D.fnoatt);}
+  if(id==='function'){rateBars('func-rate',D.func);volBars('func-vol',D.func,496);funcTable();}
+  if(id==='level'){rateBars('lvl-rate',D.level);volBars('lvl-vol',D.level,496);levelTable();}
+  if(id==='location'){locBars('loc-att',D.locAtt,'var(--green)',496);locBars('loc-inv',D.locInv,'var(--blue)',721);locGrid(D.locAtt);}
+  if(id==='day2'){simpleBars('d2-lvl',D.d2lvl,'var(--amber)',40,75);simpleBars('d2-func',D.d2func,'var(--blue)',36,75);d2convTable();}
+  if(id==='nonatt'){
+    simpleBars('dec-func',D.decFunc,'var(--red)',38);
+    simpleBars('noresp-func',D.norFunc,'#666',42);
+    simpleBars('can-func',D.canFunc,'#78716c',14);
+    setTimeout(()=>document.querySelectorAll('#nonatt .bf').forEach(b=>b.style.width=b.dataset.w+'%'),80);
+  }
+  if(id==='q2pipe'){simpleBars('q2-func',D.q2func,'var(--red)',30,55);simpleBars('q2-lvl',D.q2lvl,'var(--amber)',35,55);}
+}
+document.addEventListener('DOMContentLoaded',()=>{render('overview');setTimeout(()=>{donut();document.querySelectorAll('#overview .bf').forEach(b=>b.style.width=b.dataset.w+'%');},150);});
+</script>
+</body>
+</html>
